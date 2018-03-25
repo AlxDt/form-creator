@@ -5,18 +5,14 @@
  */
 package Model.Service;
 
-import Model.Core.Field;
+import static Model.Service.FieldService.readFieldsFromFile;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.RowIdLifetime;
 import java.util.ArrayList;
-
-import Model.Core.Response;
-import static Model.Service.FieldService.readFieldsFromFile;
+import java.util.List;
 
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -24,34 +20,36 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+
+import Model.Core.Field;
+import Model.Core.Response;
 
 /**
  *
  * @author user
  */
 public class ResponseService {
+	private static final String ORIGINAL_INDICATOR = "_custom";
 
-	
 	// NOTE:
 	// If an exception is thrown, add a throws clause to the function
 
 	// TODO [6]:
-	// Creates an excel (.xlsx) file with the given file name from a given configuration (.arwq) file
-	public static void createForm(File configFile, String fileNameOutput) {
-       		// Create and write to an excel file from the configuration settings
+	// Creates an excel (.xlsx) file with the given file name from a given
+	// configuration (.arwq) file
+	public static void createForm(File configFile, String outputFileName, boolean includeAll) {
+		// Create and write to an excel file from the configuration settings
 		try {
-			// Get the filename of the excel file from the configuration file
-			String filename = configFile.getName().split("\\.")[0];
-                        ArrayList<String> headers = new ArrayList<>();
+			List<String> headers = new ArrayList<>();
+
 			// Get the headers of the excel file from the configuration file
-                        for (Field field : readFieldsFromFile(configFile))
-                            headers.add(field.getLabel());
-               
-                        // Create a new workbook
+			for (Field field : readFieldsFromFile(configFile, includeAll))
+				headers.add(field.getLabel());
+
+			// Create a new workbook
 			XSSFWorkbook wb = new XSSFWorkbook();
-			XSSFSheet sheet = (XSSFSheet) wb.createSheet("Members");
-                        
+			XSSFSheet sheet = (XSSFSheet) wb.createSheet("Responses");
+
 			// Create the header row
 			XSSFRow headerRow = sheet.createRow((short) 0);
 
@@ -64,20 +62,29 @@ public class ResponseService {
 			style.setFont(font);
 
 			// Write the headers into their respective columns
-			for (int i = 0; i < headers.size(); i++) {
+			for (int col = 0; col < headers.size(); col++) {
 				// Write a header label
-				XSSFCell headerCell = (XSSFCell) headerRow.createCell(i);
-				headerCell.setCellValue(headers.get(i));
+				XSSFCell headerCell = (XSSFCell) headerRow.createCell(col);
+				headerCell.setCellValue(headers.get(col));
 
 				// Embolden each header label
 				headerCell.setCellStyle(style);
 
 				// Autosize this column to fit its contents
-				sheet.autoSizeColumn(i);
+				sheet.autoSizeColumn(col);
 			}
 
+			// Append an indicator for the excel file if it's the original form
+			String[] outputFileNameSplit = outputFileName.split("\\.");
+
+			String outputFileNameAbsolutePath = outputFileNameSplit[0];
+			String outputFileNameExtension = outputFileNameSplit[1];
+
+			outputFileName = outputFileNameAbsolutePath + (includeAll ? "" : ORIGINAL_INDICATOR)
+					+ "." + outputFileNameExtension;
+
 			// Write the output to a file
-			FileOutputStream fileOut = new FileOutputStream(filename + ".xlsx");
+			FileOutputStream fileOut = new FileOutputStream(outputFileName);
 			wb.write(fileOut);
 
 			fileOut.close();
@@ -93,7 +100,7 @@ public class ResponseService {
 	// Do not delete existing response rows!
 	// Read the fields from the output file
 	public static void updateForm(File outputFile) {
-            // Create and write to an excel file from the configuration settings
+		// Create and write to an excel file from the configuration settings
 		try {
 			// Get the filename of the excel file from the configuration file
 			String filename = outputFile.getName().split("\\.")[0];
@@ -101,7 +108,7 @@ public class ResponseService {
 			FileInputStream fileIn = new FileInputStream(outputFile);
 
 			XSSFWorkbook wb = new XSSFWorkbook(fileIn);
-			XSSFSheet sheet = (XSSFSheet) wb.getSheetAt(0);                  
+			XSSFSheet sheet = (XSSFSheet) wb.getSheetAt(0);
 			XSSFRow headerRow = sheet.getRow(0);
 
 			// Prepare the style of the header cells (they should be bold)
@@ -111,11 +118,11 @@ public class ResponseService {
 			font.setBold(true);
 
 			style.setFont(font);
-                        ArrayList<String> headers = new ArrayList<>();
+			ArrayList<String> headers = new ArrayList<>();
 			// Get the headers of the excel file from the configuration file
-                        for (Field field : readFieldsFromFile(new File(filename + ".txt")))
-                            headers.add(field.getLabel());
-                        
+			for (Field field : readFieldsFromFile(new File(filename + ".txt"), true))
+				headers.add(field.getLabel());
+
 			// Write the headers into their respective columns
 			for (int i = 0; i < headers.size(); i++) {
 				// Write a header label
@@ -145,7 +152,7 @@ public class ResponseService {
 	// TODO [8]:
 	// Add a response row to an excel (.xlsx) file
 	public static void addResponse(File outputFile, Response response) {
-            // TODO Class with static function that returns the excel sheet to be written on
+		// TODO Class with static function that returns the excel sheet to be written on
 		boolean status = true;
 
 		try {
@@ -163,7 +170,7 @@ public class ResponseService {
 			for (int i = 0; i < FieldList.size(); i++) {
 				XSSFCell cell = (XSSFCell) row.createCell(i);
 				cell.setCellValue(FieldList.get(i).getAnswer());
-                                
+
 				// Autosize this column to fit its contents
 				sheet.autoSizeColumn(i);
 			}
@@ -178,6 +185,6 @@ public class ResponseService {
 		} catch (IOException ex) {
 			// The file provided does not exist or is of a different type!
 			ex.printStackTrace();
-		}            
+		}
 	}
 }
