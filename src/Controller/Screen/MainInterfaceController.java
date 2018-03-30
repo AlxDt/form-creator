@@ -80,7 +80,7 @@ public class MainInterfaceController implements Initializable {
                 // Extract the attendance interface controller from the FXML
                 LoadFormController loadFormController = loader.getController();
 
-                // Set the query of the text area
+                // Set the parameters of the save dialog
                 loadFormController.setParameters(file);
 
                 StageController.addScreen("load", scene);

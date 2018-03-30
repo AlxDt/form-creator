@@ -57,12 +57,12 @@ public class FormInterfaceController implements Initializable {
             // Extract the ARW interface controller from the FXML
             PresetARWController presetARWController = loader.getController();
 
-            // Set the query of the text area
+            // Set the parameters of the save dialog
             presetARWController.setParameters();
 
             StageController.addScreen("arw", scene);
             StageController.activate("arw");
-        } catch (IOException | NullPointerException ex) {
+        } catch (IOException ex) {
         }
     }
 
@@ -82,12 +82,12 @@ public class FormInterfaceController implements Initializable {
             // Extract the attendance interface controller from the FXML
             PresetAttendanceController presetAttendanceController = loader.getController();
 
-            // Set the query of the text area
+            // Set the parameters of the save dialog
             presetAttendanceController.setParameters();
 
             StageController.addScreen("attendance", scene);
             StageController.activate("attendance");
-        } catch (IOException | NullPointerException ex) {
+        } catch (IOException ex) {
         }
     }
 
@@ -107,7 +107,7 @@ public class FormInterfaceController implements Initializable {
             // Extract the ARW interface controller from the FXML
             NewFormController newFormController = loader.getController();
 
-            // Set the query of the text area
+            // Set the parameters of the save dialog
             newFormController.setParameters();
 
             StageController.addScreen("new", scene);

@@ -22,10 +22,10 @@
                   <DropShadow blurType="GAUSSIAN" />
                </effect>
             </Rectangle>
-            <HBox fx:id="menuBar" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="100.0">
+            <HBox fx:id="menuBar" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="120.0">
                <children>
                   <Button fx:id="backButton" mnemonicParsing="false" onAction="#backAction" prefHeight="43.0" prefWidth="100.0" text="Back" />
-                  <Text id="subtitle" fx:id="titleText" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Title" />
+                  <Text id="subtitle" fx:id="titleText" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Preview form" />
                   <Button fx:id="answerButton" mnemonicParsing="false" onAction="#answerAction" prefHeight="43.0" prefWidth="100.0" text="Answer" />
                </children>
             </HBox>

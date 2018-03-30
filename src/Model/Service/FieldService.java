@@ -20,91 +20,138 @@ import java.util.Scanner;
  */
 public class FieldService {
 
-	// Create a configuration file from a list of fields
-	public static void writeFieldsToFile(String filename, List<Field> fields, int lengthOriginal)
-			throws FileNotFoundException {
-		PrintWriter newFile;
+    // Create a configuration file from a list of fields
+    public static void writeFieldsToFile(String filename, List<Field> fields, String outputFilename,
+            String officialOutputFilename, int lengthOriginal, boolean isTemplate) throws FileNotFoundException {
+        PrintWriter newFile;
 
-		newFile = new PrintWriter(filename);
+        newFile = new PrintWriter(filename);
 
-		// The first line will always contain the original length of the form
-		// (the preset forms which cannot be modified)
-		newFile.println(lengthOriginal);
+        // The first line will always contain the full path to the output excel file
+        // (and its official copy, if available)
+        newFile.println(outputFilename + ((officialOutputFilename != null) ? "," + officialOutputFilename : ""));
 
-		for (Field field : fields) {
-			newFile.print(field.getLabel());
+        // The second line will always contain the original length of the form
+        // (the preset forms which cannot be modified)
+        newFile.println(lengthOriginal);
 
-			List<String> multiOption = field.getMultiOption();
+        // The third line will always contain the template flag
+        // (whether a template was used or not)
+        newFile.println(isTemplate ? 1 : 0);
 
-			if (multiOption != null) {
-				newFile.print(">");
+        for (Field field : fields) {
+            newFile.print(field.getLabel());
 
-				for (int choiceIndex = 0; choiceIndex < multiOption.size(); choiceIndex++) {
-					newFile.print(multiOption.get(choiceIndex));
+            List<String> multiOption = field.getMultiOption();
 
-					if (choiceIndex < multiOption.size() - 1) {
-						newFile.print(",");
-					}
-				}
-			}
+            if (multiOption != null) {
+                newFile.print(">");
 
-			newFile.println();
-		}
+                for (int choiceIndex = 0; choiceIndex < multiOption.size(); choiceIndex++) {
+                    newFile.print(multiOption.get(choiceIndex));
 
-		newFile.close();
-	}
+                    if (choiceIndex < multiOption.size() - 1) {
+                        newFile.print(",");
+                    }
+                }
+            }
 
-	// Get the fields from a configuration file
-	public static List<Field> readFieldsFromFile(File configFile, boolean includeAll) throws FileNotFoundException {
-		List<Field> fields;
+            newFile.println();
+        }
 
-		// Read all the data from the configuration file
-		try (Scanner fileScanner = new Scanner(configFile)) {
-			fields = new ArrayList<>();
+        newFile.close();
+    }
 
-			// Get the original (non-custom) length of the form
-			int originalLength = Integer.parseInt(fileScanner.nextLine());
+    // Get the fields from a configuration file
+    public static List<Field> readFieldsFromFile(File configFile, boolean includeAll) throws FileNotFoundException {
+        List<Field> fields;
 
-			while (fileScanner.hasNextLine()) {
-				String label;
-				List<String> multiOption;
+        // Read all the data from the configuration file
+        try (Scanner fileScanner = new Scanner(configFile)) {
+            fields = new ArrayList<>();
 
-				String field = fileScanner.nextLine();
+            // Skip the first line
+            fileScanner.nextLine();
 
-				label = field.split(">")[0];
+            // Get the original (non-custom) length of the form
+            int originalLength = Integer.parseInt(fileScanner.nextLine());
 
-				try {
-					String optionsLine = field.split(">")[1];
+            // Skip the third line
+            fileScanner.nextLine();
 
-					multiOption = Arrays.asList(optionsLine.split(","));
-				} catch (ArrayIndexOutOfBoundsException ex) {
-					multiOption = null;
-				}
+            while (fileScanner.hasNextLine()) {
+                String label;
+                List<String> multiOption;
 
-				fields.add(new Field(label, multiOption));
+                String field = fileScanner.nextLine();
 
-				// If a non-custom form is to be created, include the original fields only
-				originalLength--;
+                label = field.split(">")[0];
 
-				if (originalLength == 0 && !includeAll) {
-					break;
-				}
-			}
-		}
+                try {
+                    String optionsLine = field.split(">")[1];
 
-		return fields;
-	}
+                    multiOption = Arrays.asList(optionsLine.split(","));
+                } catch (ArrayIndexOutOfBoundsException ex) {
+                    multiOption = null;
+                }
 
-	// Get the original length of the form (the number of preset fields which cannot
-	// be modified)
-	public static int getLengthOriginal(File configFile) throws FileNotFoundException {
-		int lengthOriginal;
+                fields.add(new Field(label, multiOption));
 
-		// Read all the data from the configuration file
-		try (Scanner fileScanner = new Scanner(configFile)) {
-			lengthOriginal = fileScanner.nextInt();
-		}
+                // If a non-custom form is to be created, include the original fields only
+                originalLength--;
 
-		return lengthOriginal;
-	}
+                if (originalLength == 0 && !includeAll) {
+                    break;
+                }
+            }
+        }
+
+        return fields;
+    }
+
+    // Get the output file name
+    public static String[] getOutputFilenames(File configFile) throws FileNotFoundException {
+        String outputFilename;
+
+        // Read all the data from the configuration file
+        try (Scanner fileScanner = new Scanner(configFile)) {
+            outputFilename = fileScanner.nextLine();
+        }
+
+        return outputFilename.split(",");
+    }
+
+    // Get the original length of the form (the number of preset fields which cannot
+    // be modified)
+    public static int getLengthOriginal(File configFile) throws FileNotFoundException {
+        int lengthOriginal;
+
+        // Read all the data from the configuration file
+        try (Scanner fileScanner = new Scanner(configFile)) {
+            // Skip first line
+            fileScanner.nextLine();
+
+            lengthOriginal = fileScanner.nextInt();
+        }
+
+        return lengthOriginal;
+    }
+
+    // Get the template flag of the form
+    public static boolean getIsTemplate(File configFile) throws FileNotFoundException {
+        int isTemplate;
+
+        // Read all the data from the configuration file
+        try (Scanner fileScanner = new Scanner(configFile)) {
+            // Skip first line
+            fileScanner.nextLine();
+
+            // Skip second line
+            fileScanner.nextLine();
+
+            isTemplate = fileScanner.nextInt();
+        }
+
+        return isTemplate == 1;
+    }
 }
