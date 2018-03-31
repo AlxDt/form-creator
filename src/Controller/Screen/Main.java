@@ -26,6 +26,8 @@ public class Main extends Application {
     public static final String EDIT_THEME = "#f57c00";
     public static final String ANSWER_THEME = "#2e7d32";
 
+    public static final String TEMPORARY_FILE_INDICATOR = "tmp_";
+
     public static Stage primaryStage;
 
     @Override

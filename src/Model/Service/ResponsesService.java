@@ -5,7 +5,7 @@
  */
 package Model.Service;
 
-import static Model.Service.FieldService.readFieldsFromFile;
+import static Model.Service.QuestionsService.readFieldsFromFile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +30,7 @@ import org.apache.poi.ss.usermodel.Row;
  *
  * @author user
  */
-public class ResponseService {
+public class ResponsesService {
 
     private static final String NEW_HEADER_RESPONSE_FILLER = "N/A";
 

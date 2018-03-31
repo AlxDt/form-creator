@@ -8,15 +8,18 @@ package Controller.Screen;
 import Controller.Dialog.AlertController;
 import Controller.Dialog.ConfirmationController;
 import Controller.Dialog.TextInputController;
+import static Controller.Screen.Main.TEMPORARY_FILE_INDICATOR;
 import Model.Core.Field;
 import Model.Core.Response;
-import Model.Service.FieldService;
-import Model.Service.ResponseService;
+import Model.Service.QuestionsService;
+import Model.Service.ResponsesService;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,6 +65,8 @@ public class LoadFormController implements Initializable {
 
     private static boolean isEdit;
 
+    private boolean isNaturallyClosed;
+
     @FXML
     private Button backButton;
 
@@ -95,13 +100,13 @@ public class LoadFormController implements Initializable {
 
             fieldAnswers = new ArrayList<>();
 
-            storedResponse = new Response(FieldService.readFieldsFromFile(currentFile, true));
-            lengthOriginal = FieldService.getLengthOriginal(currentFile);
+            storedResponse = new Response(QuestionsService.readFieldsFromFile(currentFile, true));
+            lengthOriginal = QuestionsService.getLengthOriginal(currentFile);
 
             isEdit = false;
         } catch (FileNotFoundException ex) {
             AlertController.showAlert("Error", "Cannot open that file",
-                    "We cannot open that file. It might be of the wrong format.", Alert.AlertType.ERROR);
+                    "We cannot open that file. It might be of the wrong format, or it doesn't even exist at all.", Alert.AlertType.ERROR);
         }
     }
 
@@ -166,6 +171,8 @@ public class LoadFormController implements Initializable {
     }
 
     public void setParameters(File file) {
+        this.isNaturallyClosed = true;
+
         loadFields(file);
         drawFields();
     }
@@ -287,7 +294,9 @@ public class LoadFormController implements Initializable {
     }
 
     @FXML
-    public void saveAction() {
+    public boolean saveAction() {
+        isNaturallyClosed = true;
+
         if (!storedResponse.getFields().isEmpty()) {
             // Load the form FXML
             try {
@@ -312,11 +321,14 @@ public class LoadFormController implements Initializable {
                 saveStage.initModality(Modality.APPLICATION_MODAL);
 
                 // Set the parameters of the update dialog
-                updateInterfaceController.setParameters(
-                        saveStage,
+                updateInterfaceController.setParameters(saveStage,
                         currentFile,
                         storedResponse.getFields(),
-                        FieldService.getLengthOriginal(currentFile));
+                        QuestionsService.getLengthOriginal(currentFile));
+
+                saveStage.setOnCloseRequest(e -> {
+                    isNaturallyClosed = false;
+                });
 
                 saveStage.showAndWait();
             } catch (IOException ex) {
@@ -325,15 +337,14 @@ public class LoadFormController implements Initializable {
             AlertController.showAlert("Error", "Empty form", "You cannot save an empty form.",
                     Alert.AlertType.ERROR);
         }
+
+        return isNaturallyClosed;
     }
 
     @FXML
     public void doneAction() {
-        if (ConfirmationController.showConfirmation("Are you sure?", "You need to save any changes first",
-                "Do you want to save your changes?")) {
-            // Save changes
-            saveAction();
-
+        // Save changes
+        if (saveAction()) {
             // Reset spacing
             menuBar.setSpacing(100.0);
 
@@ -509,33 +520,99 @@ public class LoadFormController implements Initializable {
         // Save response into the associated excel (.xlsx) file (or files, if preset
         // form was used) of the current file.
         try {
-            String[] outputFilenames = FieldService.getOutputFilenames(currentFile);
+            // Create a temporary copy of the file and
+            // the the official file (if available)
+            String[] outputFilenames = QuestionsService.getOutputFilenames(currentFile);
 
-            File outputFile = new File(outputFilenames[0]);
+            File responsesFile = new File(outputFilenames[0]);
+            File officialFile = null;
 
-            ResponseService.addResponse(outputFile, storedResponse.getFields());
+            File responsesTempFile = new File(outputFilenames[0] + TEMPORARY_FILE_INDICATOR);
+            File officialTempFile = null;
 
-            // If there are two output files, submit responses to both official and custom
-            // forms
-            if (outputFilenames.length == 2) {
-                outputFile = new File(outputFilenames[1]);
+            Files.copy(
+                    responsesFile.toPath(),
+                    responsesTempFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+            );
 
-                ResponseService.addResponse(outputFile, storedResponse.getFields().subList(0, lengthOriginal));
+            boolean isOfficialExists = outputFilenames.length == 2;
+
+            if (isOfficialExists) {
+                officialFile = new File(outputFilenames[1]);
+                officialTempFile = new File(outputFilenames[1] + TEMPORARY_FILE_INDICATOR);
+
+                Files.copy(
+                        officialFile.toPath(),
+                        officialTempFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING
+                );
             }
 
-            // Show save success message
-            AlertController.showAlert("Success", "Response submitted",
-                    "Your response has been successfully submitted. Thank you!", Alert.AlertType.INFORMATION);
+            try {
+                ResponsesService.addResponse(responsesFile, storedResponse.getFields());
 
-            // Clear the current response
-            clearAnswers();
+                // If there are two output files, submit responses to both official and custom
+                // forms
+                if (isOfficialExists) {
+                    ResponsesService.addResponse(officialFile, storedResponse.getFields().subList(0, lengthOriginal));
+                }
 
-            // Redraw fields
-            drawFields();
+                // Then delete all temporary files
+                responsesTempFile.delete();
+
+                if (officialTempFile != null) {
+                    officialTempFile.delete();
+                }
+
+                // Show save success message
+                AlertController.showAlert("Success", "Response submitted",
+                        "Your response has been successfully submitted. Thank you!", Alert.AlertType.INFORMATION);
+
+                // Clear the current response
+                clearAnswers();
+
+                // Redraw fields
+                drawFields();
+            } catch (IOException ex) {
+                try {
+                    Files.copy(
+                            responsesTempFile.toPath(),
+                            responsesFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING
+                    );
+                } catch (IOException ex2) {
+                    // Do nothing
+                }
+
+                if (isOfficialExists && officialTempFile != null && officialFile != null) {
+                    try {
+                        Files.copy(
+                                officialTempFile.toPath(),
+                                officialFile.toPath(),
+                                StandardCopyOption.REPLACE_EXISTING
+                        );
+                    } catch (IOException ex2) {
+                        // Do nothing
+                    }
+                }
+
+                responsesTempFile.delete();
+
+                if (officialTempFile != null) {
+                    officialTempFile.delete();
+                }
+
+                AlertController.showAlert("Error", "Could not submit response",
+                        "Could not write the response to the output file. Make sure no other program is using that output file, or that it even exists at all.",
+                        Alert.AlertType.ERROR);
+            }
         } catch (IOException e) {
             AlertController.showAlert("Error", "Could not submit response",
                     "Could not write the response to the output file. Make sure no other program is using that output file, or that it even exists at all.",
                     Alert.AlertType.ERROR);
+
+            e.printStackTrace();
         }
     }
 

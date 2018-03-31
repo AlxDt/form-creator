@@ -7,8 +7,8 @@ package Controller.Screen;
 
 import Controller.Dialog.AlertController;
 import Model.Core.Field;
-import Model.Service.FieldService;
-import Model.Service.ResponseService;
+import Model.Service.QuestionsService;
+import Model.Service.ResponsesService;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -160,7 +160,7 @@ public class SaveInterfaceController implements Initializable {
             if (!responsesLabel.getText().equals(officialLabel.getText())) {
                 try {
                     // Save an ARW questions (.arwq) file containing the format of the questions
-                    FieldService.writeFieldsToFile(
+                    QuestionsService.writeFieldsToFile(
                             questionsLabel.getText(),
                             fields,
                             responsesLabel.getText(),
@@ -169,17 +169,18 @@ public class SaveInterfaceController implements Initializable {
                             isTemplate
                     );
 
-                    // TODO [3, 4, 5]: Save an excel (.xlsx) file containing:
-                    // 1) The original fields,
-                    ResponseService.createForm(
+                    // TODO [3, 4, 5]: Create an excel (.xlsx) file containing all
+                    // preset fields + custom fields
+                    ResponsesService.createForm(
                             new File(questionsLabel.getText()),
                             responsesLabel.getText(),
                             true
                     );
 
-                    // 2) The original fields + the custom fields added by the user (if any)
+                    // 2) If a custom form was made, create an excel file
+                    // containing only the official fields
                     if (isCustom) {
-                        ResponseService.createForm(
+                        ResponsesService.createForm(
                                 new File(questionsLabel.getText()),
                                 officialLabel.getText(),
                                 false
@@ -193,6 +194,16 @@ public class SaveInterfaceController implements Initializable {
                     // Close this stage
                     stage.close();
                 } catch (IOException ex) {
+                    // Roll all changes back in case of failure to ensure
+                    // transaction atomicity
+                    File questionsFile = new File(questionsLabel.getText());
+                    File responsesFile = new File(responsesLabel.getText());
+                    File officialFile = new File(officialLabel.getText());
+
+                    questionsFile.delete();
+                    responsesFile.delete();
+                    officialFile.delete();
+
                     AlertController.showAlert("Error", "Form save failed",
                             "The form was not saved. Make sure the file isn't open in another program.",
                             Alert.AlertType.ERROR);

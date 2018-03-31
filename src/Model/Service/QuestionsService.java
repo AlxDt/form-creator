@@ -18,7 +18,7 @@ import java.util.Scanner;
  *
  * @author user
  */
-public class FieldService {
+public class QuestionsService {
 
     // Create a configuration file from a list of fields
     public static void writeFieldsToFile(String filename, List<Field> fields, String outputFilename,

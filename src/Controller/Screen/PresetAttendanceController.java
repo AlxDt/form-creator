@@ -9,7 +9,7 @@ import Controller.Dialog.AlertController;
 import Controller.Dialog.TextInputController;
 import Model.Core.Field;
 import Model.Core.Response;
-import Model.Service.FieldService;
+import Model.Service.QuestionsService;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -145,7 +145,7 @@ public class PresetAttendanceController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         try {
             storedResponse = new Response(
-                    FieldService.readFieldsFromFile(new File(Main.PRESET_ATTENDANCE_FIELDS_PATH), true));
+                    QuestionsService.readFieldsFromFile(new File(Main.PRESET_ATTENDANCE_FIELDS_PATH), true));
 
             // Set the original length to the length of the presets
             lengthOriginal = storedResponse.getFields().size();

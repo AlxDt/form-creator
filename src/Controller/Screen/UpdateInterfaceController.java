@@ -6,9 +6,10 @@
 package Controller.Screen;
 
 import Controller.Dialog.AlertController;
+import static Controller.Screen.Main.TEMPORARY_FILE_INDICATOR;
 import Model.Core.Field;
-import Model.Service.FieldService;
-import Model.Service.ResponseService;
+import Model.Service.QuestionsService;
+import Model.Service.ResponsesService;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -89,12 +90,14 @@ public class UpdateInterfaceController implements Initializable {
         this.lengthOriginal = lengthOriginal;
 
         this.isCustom = fields.size() > lengthOriginal;
-        this.isTemplate = FieldService.getIsTemplate(currentFile);
+        this.isTemplate = QuestionsService.getIsTemplate(currentFile);
 
         try {
             String officialFilename;
 
-            officialFilename = FieldService.getOutputFilenames(currentFile)[1];
+            officialFilename = QuestionsService.getOutputFilenames(currentFile)[1];
+
+            officialLabel.setText(officialFilename);
 
             this.isOfficialExists = new File(officialFilename).exists();
         } catch (ArrayIndexOutOfBoundsException ex) {
@@ -112,7 +115,7 @@ public class UpdateInterfaceController implements Initializable {
         }
 
         questionsLabel.setText(currentFile.getAbsolutePath());
-        responsesLabel.setText(FieldService.getOutputFilenames(currentFile)[0]);
+        responsesLabel.setText(QuestionsService.getOutputFilenames(currentFile)[0]);
     }
 
     /**
@@ -179,54 +182,144 @@ public class UpdateInterfaceController implements Initializable {
                 && officialLabel.isVisible() || !officialLabel.isVisible()) {
             if (!responsesLabel.getText().equals(officialLabel.getText())) {
                 try {
-                    // Save an ARW questions (.arwq) file containing the format of the questions
-                    FieldService.writeFieldsToFile(
-                            questionsLabel.getText(),
-                            fields,
-                            responsesLabel.getText(),
-                            isCustom && isTemplate ? officialLabel.getText() : null,
-                            lengthOriginal,
-                            isTemplate
+                    // Create a temporary copy of the questions file, responses file, and
+                    // the the official file (if available)
+                    File questionsFile = new File(questionsLabel.getText());
+                    File responsesFile = new File(responsesLabel.getText());
+                    File officialFile = null;
+
+                    File questionsTempFile = new File(questionsLabel.getText() + TEMPORARY_FILE_INDICATOR);
+                    File responsesTempFile = new File(responsesLabel.getText() + TEMPORARY_FILE_INDICATOR);
+                    File officialTempFile = null;
+
+                    Files.copy(
+                            questionsFile.toPath(),
+                            questionsTempFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING
                     );
 
-                    // TODO [1]: Perform the following:
-                    // 1) Update the fields of the excel (.xlsx) file corresponding to the current
-                    // file containing all preset fields + custom fields,
-                    ResponseService.updateForm(
-                            currentFile,
-                            new File(responsesLabel.getText()),
-                            true
+                    Files.copy(
+                            responsesFile.toPath(),
+                            responsesTempFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING
                     );
 
-                    // 2) If the file was a preset file and it was modified,
-                    // and if the official copy doesn't exist yet, create it and
-                    // update it with the responses;
-                    // but if the official copy already exists, then nothing
-                    // needs to be updated at all, as the official copy
-                    // only concerns preset fields
-                    if (isCustom && isTemplate && !isOfficialExists) {
-                        // Make a copy of the responses file and turn it into
-                        // the official copy
+                    if (isOfficialExists) {
+                        officialFile = new File(officialLabel.getText());
+                        officialTempFile = new File(officialLabel.getText() + TEMPORARY_FILE_INDICATOR);
+
                         Files.copy(
-                                new File(responsesLabel.getText()).toPath(),
-                                new File(officialLabel.getText()).toPath(),
+                                officialFile.toPath(),
+                                officialTempFile.toPath(),
                                 StandardCopyOption.REPLACE_EXISTING
-                        );
-
-                        // Then update it with the latest responses
-                        ResponseService.updateForm(
-                                currentFile,
-                                new File(officialLabel.getText()),
-                                false
                         );
                     }
 
-                    // Show success dialog
-                    AlertController.showAlert("Information", "Form successfully saved",
-                            "The form was successfully saved.", Alert.AlertType.INFORMATION);
+                    try {
+                        // Save an ARW questions (.arwq) file containing the format of the questions
+                        QuestionsService.writeFieldsToFile(
+                                questionsLabel.getText(),
+                                fields,
+                                responsesLabel.getText(),
+                                isCustom && isTemplate ? officialLabel.getText() : null,
+                                lengthOriginal,
+                                isTemplate
+                        );
 
-                    // Close this stage
-                    stage.close();
+                        // TODO [1]: Perform the following:
+                        // 1) Update the fields of the excel (.xlsx) file corresponding to the current
+                        // file containing all preset fields + custom fields,
+                        ResponsesService.updateForm(
+                                currentFile,
+                                responsesFile,
+                                true
+                        );
+
+                        // 2) If the file was a preset file and it was modified,
+                        // and if the official copy doesn't exist yet, create it and
+                        // update it with the responses;
+                        // but if the official copy already exists, then nothing
+                        // needs to be updated at all, as the official copy
+                        // only concerns preset fields
+                        if (isCustom && isTemplate && !isOfficialExists) {
+                            // Make a copy of the responses file and turn it into
+                            // the official copy
+                            officialFile = new File(officialLabel.getText());
+
+                            Files.copy(
+                                    responsesFile.toPath(),
+                                    officialFile.toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING
+                            );
+
+                            // Then update it with the latest responses
+                            ResponsesService.updateForm(
+                                    currentFile,
+                                    officialFile,
+                                    false
+                            );
+                        }
+
+                        // Then delete all temporary files
+                        questionsTempFile.delete();
+                        responsesTempFile.delete();
+
+                        if (officialTempFile != null) {
+                            officialTempFile.delete();
+                        }
+
+                        // Show success dialog
+                        AlertController.showAlert("Information", "Form successfully saved",
+                                "The form was successfully saved.", Alert.AlertType.INFORMATION);
+
+                        // Close this stage
+                        stage.close();
+                    } catch (IOException ex) {
+                        // Roll all changes back in case of failure to ensure
+                        // transaction atomicity
+                        try {
+                            Files.copy(
+                                    questionsTempFile.toPath(),
+                                    questionsFile.toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING
+                            );
+                        } catch (IOException ex2) {
+                            // Do nothing
+                        }
+
+                        try {
+                            Files.copy(
+                                    responsesTempFile.toPath(),
+                                    responsesFile.toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING
+                            );
+                        } catch (IOException ex2) {
+                            // Do nothing
+                        }
+
+                        if (isOfficialExists && officialTempFile != null && officialFile != null) {
+                            try {
+                                Files.copy(
+                                        officialTempFile.toPath(),
+                                        officialFile.toPath(),
+                                        StandardCopyOption.REPLACE_EXISTING
+                                );
+                            } catch (IOException ex2) {
+                                // Do nothing
+                            }
+                        }
+
+                        questionsTempFile.delete();
+                        responsesTempFile.delete();
+
+                        if (officialTempFile != null) {
+                            officialTempFile.delete();
+                        }
+
+                        AlertController.showAlert("Error", "Form save failed",
+                                "The form was not saved. Make sure the file isn't open in another program.",
+                                Alert.AlertType.ERROR);
+                    }
                 } catch (IOException ex) {
                     AlertController.showAlert("Error", "Form save failed",
                             "The form was not saved. Make sure the file isn't open in another program.",
