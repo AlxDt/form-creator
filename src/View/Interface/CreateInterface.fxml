@@ -15,16 +15,15 @@
                 <DropShadow blurType="GAUSSIAN" />
             </effect>
         </Rectangle>
-        <Text id="title" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Forms" StackPane.alignment="CENTER">
+        <Text id="title" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Create form" StackPane.alignment="CENTER">
             <StackPane.margin>
                 <Insets bottom="250.0" />
             </StackPane.margin>
         </Text>
         <VBox alignment="CENTER" prefHeight="200.0" prefWidth="400.0" spacing="10.0">
             <children>
-                <Button fx:id="arwButton" mnemonicParsing="false" onAction="#arwButtonAction" prefHeight="43.0" prefWidth="150.0" text="Use ARW" />
-                <Button fx:id="attendanceButton" mnemonicParsing="false" onAction="#attendanceButtonAction" prefHeight="43.0" prefWidth="150.0" text="Use Attendance" />
-                <Button fx:id="newFormButton" mnemonicParsing="false" onAction="#newFormButtonAction" prefHeight="43.0" prefWidth="150.0" text="New Form" />
+                <Button fx:id="startButton" mnemonicParsing="false" onAction="#startButtonAction" prefHeight="43.0" prefWidth="150.0" text="Start new form" />
+                <Button fx:id="templateButton" mnemonicParsing="false" onAction="#templateButtonAction" prefHeight="43.0" prefWidth="150.0" text="Use a template" />
                 <Button fx:id="backButton" cancelButton="true" mnemonicParsing="false" onAction="#backButtonAction" prefHeight="43.0" prefWidth="150.0" text="Back" />
             </children>
             <StackPane.margin>

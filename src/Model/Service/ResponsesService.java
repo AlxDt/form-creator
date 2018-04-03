@@ -38,8 +38,11 @@ public class ResponsesService {
     // If an exception is thrown, add a throws clause to the function
     // TODO [6]:
     // Creates an excel (.xlsx) file with the given file name from a given
-    // configuration (.arwq) file
-    public static void createForm(File configFile, String outputFilename, boolean includeAll) throws IOException {
+    // configuration (.dlsuform) file
+    public static void createForm(
+            File configFile,
+            String outputFilename,
+            boolean includeAll) throws IOException {
         // Create and write to an excel file from the configuration settings
         List<String> headers = new ArrayList<>();
 
@@ -49,39 +52,43 @@ public class ResponsesService {
         }
 
         // Create a new workbook
-        XSSFWorkbook wb = new XSSFWorkbook();
-        XSSFSheet sheet = (XSSFSheet) wb.createSheet("Responses");
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            XSSFSheet sheet = (XSSFSheet) wb.createSheet("Responses");
 
-        // Create the header row
-        XSSFRow headerRow = sheet.createRow(0);
+            // Create the header row
+            XSSFRow headerRow = sheet.createRow(0);
 
-        // Prepare the style of the header cells (they should be bold)
-        XSSFCellStyle style = wb.createCellStyle();
+            // Prepare the style of the header cells (they should be bold)
+            XSSFCellStyle style = wb.createCellStyle();
 
-        XSSFFont font = wb.createFont();
-        font.setBold(true);
+            XSSFFont font = wb.createFont();
+            font.setBold(true);
 
-        style.setFont(font);
+            style.setFont(font);
 
-        // Write the headers into their respective columns
-        for (int columnIndex = 0; columnIndex < headers.size(); columnIndex++) {
-            // Write a header label
-            XSSFCell headerCell = (XSSFCell) headerRow.createCell(columnIndex);
-            headerCell.setCellValue(headers.get(columnIndex));
+            // Write the headers into their respective columns
+            for (int columnIndex = 0;
+                    columnIndex < headers.size();
+                    columnIndex++) {
+                // Write a header label
+                XSSFCell headerCell
+                        = (XSSFCell) headerRow.createCell(columnIndex);
 
-            // Embolden each header label
-            headerCell.setCellStyle(style);
+                headerCell.setCellValue(headers.get(columnIndex));
 
-            // Autosize this column to fit its contents
-            sheet.autoSizeColumn(columnIndex);
+                // Embolden each header label
+                headerCell.setCellStyle(style);
+
+                // Autosize this column to fit its contents
+                sheet.autoSizeColumn(columnIndex);
+            }
+
+            try (FileOutputStream fileOut
+                    = new FileOutputStream(outputFilename)) {
+                // Write the output to a file
+                wb.write(fileOut);
+            }
         }
-
-        // Write the output to a file
-        FileOutputStream fileOut = new FileOutputStream(outputFilename);
-        wb.write(fileOut);
-
-        fileOut.close();
-        wb.close();
     }
 
     // TODO [7]:
@@ -89,7 +96,10 @@ public class ResponsesService {
     // Insert blank cells to existing rows should new fields be added
     // Do not delete existing response rows!
     // Read the fields from the output file
-    public static void updateForm(File configFile, File outputFile, boolean isCustom) throws IOException {
+    public static void updateForm(
+            File configFile,
+            File outputFile,
+            boolean isCustom) throws IOException {
         // Get all new headers from the config file
         List<String> newHeaders = new ArrayList<>();
 
@@ -118,18 +128,32 @@ public class ResponsesService {
             retainedHeaders.retainAll(oldHeaders);
 
             // Save all the responses of the retained rows
-            LinkedHashMap<String, List<String>> retainedResponses = new LinkedHashMap<>();
+            LinkedHashMap<String, List<String>> retainedResponses
+                    = new LinkedHashMap<>();
 
-            for (int columnIndex = 0; columnIndex < headerRow.getPhysicalNumberOfCells(); columnIndex++) {
-                String header = headerRow.getCell(columnIndex).getStringCellValue();
+            for (int columnIndex = 0;
+                    columnIndex < headerRow.getPhysicalNumberOfCells();
+                    columnIndex++) {
+                String header
+                        = headerRow.getCell(columnIndex).getStringCellValue();
+
+                if (headerRow.getCell(columnIndex).getStringCellValue().trim()
+                        .isEmpty()) {
+                    break;
+                }
 
                 if (retainedHeaders.contains(header)) {
                     List<String> responses = new ArrayList<>();
 
-                    for (int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
+                    for (int rowIndex = 1;
+                            rowIndex < sheet.getPhysicalNumberOfRows();
+                            rowIndex++) {
                         Row responseRow = sheet.getRow(rowIndex);
 
-                        responses.add(responseRow.getCell(columnIndex).getStringCellValue());
+                        responses.add(
+                                responseRow.getCell(columnIndex)
+                                        .getStringCellValue()
+                        );
                     }
 
                     retainedResponses.put(header, responses);
@@ -161,7 +185,9 @@ public class ResponsesService {
             style.setFont(font);
 
             // Write the new headers into their respective columns
-            for (int columnIndex = 0; columnIndex < newHeaders.size(); columnIndex++) {
+            for (int columnIndex = 0;
+                    columnIndex < newHeaders.size();
+                    columnIndex++) {
                 boolean isRetained;
 
                 String header = newHeaders.get(columnIndex);
@@ -176,7 +202,8 @@ public class ResponsesService {
                 // Embolden each header label
                 headerCell.setCellStyle(style);
 
-                // Write all responses, or put a filler response if not available
+                // Write all responses, or put a filler response if not
+                // available
                 for (int rowIndex = 1; rowIndex < numRows; rowIndex++) {
                     Row responseRow = sheet.getRow(rowIndex);
                     Cell cell = responseRow.createCell(columnIndex);
@@ -202,7 +229,8 @@ public class ResponsesService {
 
     // TODO [8]:
     // Add a response row to an excel (.xlsx) file
-    public static void addResponse(File outputFile, List<Field> fields) throws IOException {
+    public static void addResponse(File outputFile, List<Field> fields)
+            throws IOException {
         XSSFWorkbook workbook;
 
         try (FileInputStream fileIn = new FileInputStream(outputFile)) {
@@ -228,5 +256,69 @@ public class ResponsesService {
 
             workbook.close();
         }
+    }
+
+    // Count the number of header columns
+    public static List<String> getHeaders(File outputFile) throws IOException {
+        XSSFWorkbook workbook;
+
+        List<String> headersList = new ArrayList<>();
+
+        try (FileInputStream fileIn = new FileInputStream(outputFile)) {
+            workbook = new XSSFWorkbook(fileIn);
+
+            XSSFSheet sheet = (XSSFSheet) workbook.getSheetAt(0);
+
+            Row headers = sheet.getRow(0);
+
+            for (Cell header : headers) {
+                if (header.getStringCellValue().trim().isEmpty()) {
+                    break;
+                }
+
+                headersList.add(header.getStringCellValue());
+            }
+        }
+
+        return headersList;
+    }
+
+    // Check if the response file is square (same number of rows all throughout)
+    public static boolean isSquare(File outputFile) throws IOException {
+        XSSFWorkbook workbook;
+
+        try (FileInputStream fileIn = new FileInputStream(outputFile)) {
+            workbook = new XSSFWorkbook(fileIn);
+
+            XSSFSheet sheet = (XSSFSheet) workbook.getSheetAt(0);
+
+            int prevColumnCount = 0;
+
+            for (int rowIndex = 0;
+                    rowIndex < sheet.getPhysicalNumberOfRows();
+                    rowIndex++) {
+                int columnCount = 0;
+
+                for (int columnIndex = 0;
+                        columnIndex < sheet.getRow(rowIndex)
+                                .getPhysicalNumberOfCells();
+                        columnIndex++) {
+                    if (sheet.getRow(rowIndex).getCell(columnIndex)
+                            .getStringCellValue().trim().isEmpty()) {
+                        break;
+                    }
+
+                    columnCount++;
+                }
+
+                if (rowIndex > 0 && columnCount != prevColumnCount) {
+                    return false;
+                }
+
+                prevColumnCount = columnCount;
+            }
+        }
+
+        return true;
     }
 }

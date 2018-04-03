@@ -6,6 +6,7 @@
 package Controller.Screen;
 
 import Controller.Dialog.AlertController;
+import Controller.Dialog.ConfirmationController;
 import Controller.Dialog.TextInputController;
 import Model.Core.Field;
 import Model.Core.Response;
@@ -13,7 +14,6 @@ import Model.Service.QuestionsService;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -47,10 +47,13 @@ import javafx.util.Duration;
  */
 public class PresetAttendanceController implements Initializable {
 
+    // The number of official (non-custom) fields in the form
     private static int lengthOriginal;
 
+    // The responses of the currently loaded questions file
     private static Response storedResponse;
 
+    // Edit mode flag
     private static boolean isEdit;
 
     @FXML
@@ -97,11 +100,18 @@ public class PresetAttendanceController implements Initializable {
             GridPane.setConstraints(fieldLabel, 0, row);
             fieldsGrid.getChildren().add(fieldLabel);
 
-            // And if the field is a multi-option one, add a choicebox containing the
-            // options
+            // And if the field is a multi-option one, add a choicebox
+            // containing the options
             // If not, put a dummy text field
             if (field.getMultiOption() != null) {
-                ChoiceBox options = new ChoiceBox(FXCollections.observableList(field.getMultiOption()));
+                ChoiceBox options
+                        = new ChoiceBox(
+                                FXCollections.observableList(
+                                        field.getMultiOption()
+                                )
+                        );
+
+                options.setDisable(true);
 
                 GridPane.setConstraints(options, 1, row);
 
@@ -109,14 +119,15 @@ public class PresetAttendanceController implements Initializable {
             } else {
                 TextField value = new TextField();
 
+                value.setDisable(true);
+
                 GridPane.setConstraints(value, 1, row);
 
                 fieldsGrid.getChildren().add(value);
             }
 
-            // If the length of the original has been exceeded, all fields are now custom
-            // from now on
-            // so add a delete button
+            // If the length of the original has been exceeded, all fields are
+            // now custom from now on so add a delete button
             final int finalRow = row;
 
             if (row >= lengthOriginal && isEdit) {
@@ -144,20 +155,37 @@ public class PresetAttendanceController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         try {
-            storedResponse = new Response(
-                    QuestionsService.readFieldsFromFile(new File(Main.PRESET_ATTENDANCE_FIELDS_PATH), true));
+            storedResponse
+                    = new Response(
+                            QuestionsService.readFieldsFromFile(
+                                    new File(
+                                            Main.PRESET_ATTENDANCE_FIELDS_PATH
+                                    ),
+                                    true
+                            )
+                    );
 
             // Set the original length to the length of the presets
             lengthOriginal = storedResponse.getFields().size();
         } catch (FileNotFoundException ex) {
-            AlertController.showAlert("Error", "Cannot open attendance presets",
-                    "We cannot open the Attendance presets file. Does it exist?", Alert.AlertType.ERROR);
+            AlertController.showAlert(
+                    "Error",
+                    "Cannot open attendance presets",
+                    "We cannot open the Attendance presets file. Does it exist?",
+                    Alert.AlertType.ERROR
+            );
         }
     }
 
     @FXML
     public void backAction() {
-        StageController.activate("form");
+        // Prompt the user before leaving
+        if (ConfirmationController.showConfirmation(
+                "Are you sure?",
+                "Unsaved changes will be discarded",
+                "Are you sure you want to go back?")) {
+            StageController.activate("template");
+        }
     }
 
     @FXML
@@ -186,7 +214,7 @@ public class PresetAttendanceController implements Initializable {
         // Reset the title
         titleText.setText("Edit Attendance Form");
 
-        menuBar.getChildren().addAll(saveButton, titleText, doneButton);
+        menuBar.getChildren().addAll(doneButton, titleText, saveButton);
 
         // Clear edit bar
         editBar.getChildren().clear();
@@ -203,11 +231,19 @@ public class PresetAttendanceController implements Initializable {
         editBar.getChildren().addAll(addQuestionButton, addMultipleChoiceButton);
 
         // Change color scheme
-        new FillTransition(Duration.millis(250), menuRectangle, (Color) menuRectangle.getFill(),
-                (Color) Paint.valueOf(Main.EDIT_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                menuRectangle,
+                (Color) menuRectangle.getFill(),
+                (Color) Paint.valueOf(Main.EDIT_THEME)
+        ).play();
 
-        new FillTransition(Duration.millis(250), editRectangle, (Color) editRectangle.getFill(),
-                (Color) Paint.valueOf(Main.EDIT_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                editRectangle,
+                (Color) editRectangle.getFill(),
+                (Color) Paint.valueOf(Main.EDIT_THEME)
+        ).play();
 
         // Turn on edit mode
         isEdit = true;
@@ -220,17 +256,26 @@ public class PresetAttendanceController implements Initializable {
     public void saveAction() {
         // Load the form FXML
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/Interface/SaveInterface.fxml"));
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/View/Interface/SaveInterface.fxml")
+            );
+
             BorderPane window = loader.load();
 
             Scene scene = new Scene(window);
 
             // Style the scene
-            scene.getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-            scene.getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+            scene.getStylesheets().add(
+                    "/View/Interface/material-fx-v0_3.css"
+            );
+
+            scene.getStylesheets().add(
+                    "/View/Interface/materialfx-toggleswitch.css"
+            );
 
             // Extract the save interface controller from the FXML
-            SaveInterfaceController saveInterfaceController = loader.getController();
+            SaveInterfaceController saveInterfaceController
+                    = loader.getController();
 
             Stage saveStage = new Stage();
 
@@ -241,10 +286,22 @@ public class PresetAttendanceController implements Initializable {
             saveStage.initModality(Modality.APPLICATION_MODAL);
 
             // Set the parameters of the save dialog
-            saveInterfaceController.setParameters(saveStage, storedResponse.getFields(), lengthOriginal, true);
+            saveInterfaceController.setParameters(
+                    saveStage,
+                    storedResponse.getFields(),
+                    lengthOriginal,
+                    true
+            );
 
             saveStage.showAndWait();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
+            AlertController.showAlert("Error",
+                    "Could not load resources",
+                    "The application could not load the required"
+                    + " internal resources.",
+                    Alert.AlertType.ERROR,
+                    ex
+            );
         }
     }
 
@@ -266,11 +323,19 @@ public class PresetAttendanceController implements Initializable {
         editBar.getChildren().addAll(editButton);
 
         // Change color scheme
-        new FillTransition(Duration.millis(250), menuRectangle, (Color) menuRectangle.getFill(),
-                (Color) Paint.valueOf(Main.NORMAL_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                menuRectangle,
+                (Color) menuRectangle.getFill(),
+                (Color) Paint.valueOf(Main.PREVIEW_THEME)
+        ).play();
 
-        new FillTransition(Duration.millis(250), editRectangle, (Color) editRectangle.getFill(),
-                (Color) Paint.valueOf(Main.NORMAL_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                editRectangle,
+                (Color) editRectangle.getFill(),
+                (Color) Paint.valueOf(Main.PREVIEW_THEME)
+        ).play();
 
         // Turn off edit mode
         isEdit = false;
@@ -281,19 +346,34 @@ public class PresetAttendanceController implements Initializable {
 
     @FXML
     public void addQuestionAction() {
-        Optional<String> result = TextInputController.showTextInput("Add a question", "Add a simple question field",
-                "Enter your question: ");
+        Optional<String> result
+                = TextInputController.showTextInput(
+                        "Add a question",
+                        "Add a simple question field",
+                        "Enter your question: "
+                );
 
         // If the user input something, add it to the fields grid
         result.ifPresent(question -> {
             question = question.trim();
 
-            if (question.isEmpty() || question.contains(">") || question.contains(",")) {
-                AlertController.showAlert("Error", "Invalid label", "Make sure your label isn't blank and doesn't contain the characters '>' and ','.",
-                        Alert.AlertType.ERROR);
+            if (question.isEmpty()
+                    || question.contains(">")
+                    || question.contains(",")) {
+                AlertController.showAlert(
+                        "Error",
+                        "Invalid label",
+                        "Make sure your label isn't blank and doesn't contain"
+                        + " the characters '>' and ','.",
+                        Alert.AlertType.ERROR
+                );
             } else if (isLabelExists(question)) {
-                AlertController.showAlert("Error", "Invalid label", "That label already exists.",
-                        Alert.AlertType.ERROR);
+                AlertController.showAlert(
+                        "Error",
+                        "Invalid label",
+                        "That label already exists.",
+                        Alert.AlertType.ERROR
+                );
             } else {
                 // Add a new field
                 storedResponse.getFields().add(new Field(question, null));
@@ -306,21 +386,40 @@ public class PresetAttendanceController implements Initializable {
 
     @FXML
     public void addMultipleChoiceAction() {
-        Optional<String> label = TextInputController.showTextInput("Add a multiple choice field",
-                "Set the label of the multiple choice field", "Enter the label");
+        Optional<String> label
+                = TextInputController.showTextInput(
+                        "Add a multiple choice field",
+                        "Set the label of the multiple choice field",
+                        "Enter the label"
+                );
 
         label.ifPresent(titleString -> {
             titleString = titleString.trim();
 
-            if (titleString.isEmpty() || titleString.contains(">") || titleString.contains(",")) {
-                AlertController.showAlert("Error", "Invalid label", "Make sure your label isn't blank and doesn't contain the characters '>' and ','.",
-                        Alert.AlertType.ERROR);
+            if (titleString.isEmpty()
+                    || titleString.contains(">")
+                    || titleString.contains(",")) {
+                AlertController.showAlert(
+                        "Error",
+                        "Invalid label",
+                        "Make sure your label isn't blank and doesn't contain "
+                        + "the characters '>' and ','.",
+                        Alert.AlertType.ERROR
+                );
             } else if (isLabelExists(titleString)) {
-                AlertController.showAlert("Error", "Invalid label", "That label already exists.",
-                        Alert.AlertType.ERROR);
+                AlertController.showAlert(
+                        "Error",
+                        "Invalid label",
+                        "That label already exists.",
+                        Alert.AlertType.ERROR
+                );
             } else {
-                Optional<String> result = TextInputController.showTextInput("Add a multiple choice field",
-                        "Add a multiple choice field", "Enter your choices, separate with commas: ");
+                Optional<String> result
+                        = TextInputController.showTextInput(
+                                "Add a multiple choice field",
+                                "Add a multiple choice field",
+                                "Enter your choices, separate with commas: "
+                        );
 
                 // If the user input something, add it to the fields grid
                 final String finalTitleString = titleString;
@@ -332,14 +431,24 @@ public class PresetAttendanceController implements Initializable {
                     String[] choices = choiceString.split(",");
 
                     if (choices.length < 2 || choiceString.contains(">")) {
-                        AlertController.showAlert("Error", "Invalid choices",
-                                "Make sure you've entered at least two valid choices.", Alert.AlertType.ERROR);
+                        AlertController.showAlert(
+                                "Error",
+                                "Invalid choices",
+                                "Make sure you've entered at least two valid"
+                                + " choices.",
+                                Alert.AlertType.ERROR
+                        );
                     } else {
                         // Trim any leading whitespace
                         trimChoices(choices);
 
                         // Add a new field
-                        storedResponse.getFields().add(new Field(finalTitleString, Arrays.asList(choices)));
+                        storedResponse.getFields().add(
+                                new Field(
+                                        finalTitleString,
+                                        Arrays.asList(choices)
+                                )
+                        );
 
                         // Redraw the grid
                         drawFields();

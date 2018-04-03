@@ -5,6 +5,7 @@
  */
 package Controller.Screen;
 
+import Controller.Dialog.AlertController;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -12,8 +13,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 
 /**
  * FXML Controller class
@@ -23,13 +26,10 @@ import javafx.scene.layout.BorderPane;
 public class FormInterfaceController implements Initializable {
 
     @FXML
-    private Button arwButton;
+    private Button templateButton;
 
     @FXML
-    private Button attendanceButton;
-
-    @FXML
-    private Button newFormButton;
+    private Button startButton;
 
     @FXML
     private Button backButton;
@@ -42,67 +42,25 @@ public class FormInterfaceController implements Initializable {
     }
 
     @FXML
-    private void arwButtonAction() {
+    private void startButtonAction() {
         // Load the form FXML
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/Interface/PresetARWInterface.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                    "/View/Interface/NewFormInterface.fxml")
+            );
+
             BorderPane window = loader.load();
 
             Scene scene = new Scene(window);
 
             // Style the scene
-            scene.getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-            scene.getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+            scene.getStylesheets().add(
+                    "/View/Interface/material-fx-v0_3.css"
+            );
 
-            // Extract the ARW interface controller from the FXML
-            PresetARWController presetARWController = loader.getController();
-
-            // Set the parameters of the save dialog
-            presetARWController.setParameters();
-
-            StageController.addScreen("arw", scene);
-            StageController.activate("arw");
-        } catch (IOException ex) {
-        }
-    }
-
-    @FXML
-    private void attendanceButtonAction() {
-        // Load the form FXML
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/Interface/PresetAttendanceInterface.fxml"));
-            BorderPane window = loader.load();
-
-            Scene scene = new Scene(window);
-
-            // Style the scene
-            scene.getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-            scene.getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
-
-            // Extract the attendance interface controller from the FXML
-            PresetAttendanceController presetAttendanceController = loader.getController();
-
-            // Set the parameters of the save dialog
-            presetAttendanceController.setParameters();
-
-            StageController.addScreen("attendance", scene);
-            StageController.activate("attendance");
-        } catch (IOException ex) {
-        }
-    }
-
-    @FXML
-    private void newFormButtonAction() {
-        // Load the form FXML
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/Interface/NewFormInterface.fxml"));
-            BorderPane window = loader.load();
-
-            Scene scene = new Scene(window);
-
-            // Style the scene
-            scene.getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-            scene.getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+            scene.getStylesheets().add(
+                    "/View/Interface/materialfx-toggleswitch.css"
+            );
 
             // Extract the ARW interface controller from the FXML
             NewFormController newFormController = loader.getController();
@@ -113,7 +71,48 @@ public class FormInterfaceController implements Initializable {
             StageController.addScreen("new", scene);
             StageController.activate("new");
         } catch (IOException ex) {
-            ex.printStackTrace();
+            AlertController.showAlert("Error",
+                    "Could not load resources",
+                    "The application could not load the required"
+                    + " internal resources.",
+                    Alert.AlertType.ERROR, ex
+            );
+        }
+    }
+
+    @FXML
+    private void templateButtonAction() {
+        // Load the form FXML
+        try {
+            FXMLLoader loader
+                    = new FXMLLoader(
+                            getClass().getResource(
+                                    "/View/Interface/TemplateInterface.fxml"
+                            )
+                    );
+
+            StackPane window = loader.load();
+
+            Scene scene = new Scene(window);
+
+            // Style the scene
+            scene.getStylesheets().add(
+                    "/View/Interface/material-fx-v0_3.css"
+            );
+
+            scene.getStylesheets().add(
+                    "/View/Interface/materialfx-toggleswitch.css"
+            );
+
+            StageController.addScreen("template", scene);
+            StageController.activate("template");
+        } catch (IOException ex) {
+            AlertController.showAlert("Error",
+                    "Could not load resources",
+                    "The application could not load the required"
+                    + " internal resources.",
+                    Alert.AlertType.ERROR, ex
+            );
         }
     }
 
@@ -121,5 +120,4 @@ public class FormInterfaceController implements Initializable {
     private void backButtonAction() {
         StageController.activate("main");
     }
-
 }

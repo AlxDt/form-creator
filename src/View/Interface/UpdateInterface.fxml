@@ -40,7 +40,7 @@
                 </Rectangle>
                 <HBox alignment="CENTER" prefHeight="70.0" prefWidth="425.0" spacing="40.0">
                     <children>
-                        <Button fx:id="saveButton" mnemonicParsing="false" onAction="#saveAction" prefHeight="43.0" prefWidth="100.0" text="Save" />
+                        <Button fx:id="saveButton" mnemonicParsing="false" onAction="#saveAction" prefHeight="43.0" prefWidth="100.0" text="Update" />
                     </children>
                 </HBox>
             </children>

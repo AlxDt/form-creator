@@ -22,8 +22,8 @@
         </Text>
         <VBox alignment="CENTER" prefHeight="200.0" prefWidth="400.0" spacing="25.0">
             <children>
-                <Button fx:id="formButton" mnemonicParsing="false" onAction="#formButtonAction" prefHeight="43.0" prefWidth="150.0" text="Forms" />
-                <Button fx:id="loadButton" mnemonicParsing="false" onAction="#loadButtonAction" prefHeight="43.0" prefWidth="150.0" text="Load" />
+                <Button fx:id="formButton" mnemonicParsing="false" onAction="#formButtonAction" prefHeight="43.0" prefWidth="150.0" text="Create form" />
+                <Button fx:id="loadButton" mnemonicParsing="false" onAction="#loadButtonAction" prefHeight="43.0" prefWidth="150.0" text="Load form" />
             </children>
             <StackPane.margin>
                 <Insets top="200.0" />

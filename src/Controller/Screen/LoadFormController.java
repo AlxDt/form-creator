@@ -55,16 +55,26 @@ import javafx.util.Duration;
  */
 public class LoadFormController implements Initializable {
 
+    // The currently loaded questions file
     private static File currentFile;
 
+    // The number of official (non-custom) fields in the form
     private static int lengthOriginal;
 
+    // The responses of the currently loaded questions file
     private static Response storedResponse;
 
+    // The controls (text fields and choice boxes) of the currently loaded
+    // questions file
     private static List<Control> fieldAnswers;
 
+    // Edit mode flag
     private static boolean isEdit;
 
+    // Answer mode flag
+    private static boolean isAnswer;
+
+    // Natural close (the update dialog isn't closed using the X button) flag
     private boolean isNaturallyClosed;
 
     @FXML
@@ -100,13 +110,27 @@ public class LoadFormController implements Initializable {
 
             fieldAnswers = new ArrayList<>();
 
-            storedResponse = new Response(QuestionsService.readFieldsFromFile(currentFile, true));
+            storedResponse
+                    = new Response(
+                            QuestionsService.readFieldsFromFile(
+                                    currentFile,
+                                    true
+                            )
+                    );
+
             lengthOriginal = QuestionsService.getLengthOriginal(currentFile);
 
             isEdit = false;
+            isAnswer = false;
         } catch (FileNotFoundException ex) {
-            AlertController.showAlert("Error", "Cannot open that file",
-                    "We cannot open that file. It might be of the wrong format, or it doesn't even exist at all.", Alert.AlertType.ERROR);
+            AlertController.showAlert(
+                    "Error",
+                    "Cannot open that file",
+                    "We cannot open that file. It might be of the wrong format,"
+                    + " or it doesn't even exist at all.",
+                    Alert.AlertType.ERROR,
+                    ex
+            );
         }
     }
 
@@ -131,11 +155,22 @@ public class LoadFormController implements Initializable {
 
             fieldsGrid.getChildren().add(fieldLabel);
 
-            // And if the field is a multi-option one, add a choicebox containing the
-            // options
+            // And if the field is a multi-option one, add a choicebox
+            // containing the options
             // If not, put a dummy text field
             if (field.getMultiOption() != null) {
-                ChoiceBox options = new ChoiceBox(FXCollections.observableList(field.getMultiOption()));
+                ChoiceBox options
+                        = new ChoiceBox(
+                                FXCollections.observableList(
+                                        field.getMultiOption()
+                                )
+                        );
+
+                // Disable the controls to avoid confusing the users
+                // except in answer mode
+                if (!isAnswer) {
+                    options.setDisable(true);
+                }
 
                 GridPane.setConstraints(options, 1, row);
 
@@ -144,15 +179,20 @@ public class LoadFormController implements Initializable {
             } else {
                 TextField value = new TextField();
 
+                // Disable the controls to avoid confusing the users
+                // except in answer mode
+                if (!isAnswer) {
+                    value.setDisable(true);
+                }
+
                 GridPane.setConstraints(value, 1, row);
 
                 fieldsGrid.getChildren().add(value);
                 fieldAnswers.add(value);
             }
 
-            // If the length of the original has been exceeded, all fields are now custom
-            // from now on
-            // so add a delete button
+            // If the length of the original has been exceeded, all fields are
+            // now custom from now on so add a delete button
             final int finalRow = row;
 
             if (row >= lengthOriginal && isEdit) {
@@ -171,6 +211,7 @@ public class LoadFormController implements Initializable {
     }
 
     public void setParameters(File file) {
+        // Preload the file's fields before this window is opened
         this.isNaturallyClosed = true;
 
         loadFields(file);
@@ -186,7 +227,13 @@ public class LoadFormController implements Initializable {
 
     @FXML
     public void backAction() {
-        StageController.activate("main");
+        // Prompt the user before leaving
+        if (ConfirmationController.showConfirmation(
+                "Are you sure?",
+                "Unsaved changes will be discarded",
+                "Are you sure you want to go back?")) {
+            StageController.activate("main");
+        }
     }
 
     @FXML
@@ -223,11 +270,22 @@ public class LoadFormController implements Initializable {
         editBar.getChildren().add(submitButton);
 
         // Change color scheme
-        new FillTransition(Duration.millis(250), menuRectangle, (Color) menuRectangle.getFill(),
-                (Color) Paint.valueOf(Main.ANSWER_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                menuRectangle,
+                (Color) menuRectangle.getFill(),
+                (Color) Paint.valueOf(Main.ANSWER_THEME)
+        ).play();
 
-        new FillTransition(Duration.millis(250), editRectangle, (Color) editRectangle.getFill(),
-                (Color) Paint.valueOf(Main.ANSWER_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                editRectangle,
+                (Color) editRectangle.getFill(),
+                (Color) Paint.valueOf(Main.ANSWER_THEME)
+        ).play();
+
+        // Turn on answer mode
+        isAnswer = true;
 
         // Redraw fields
         drawFields();
@@ -245,7 +303,7 @@ public class LoadFormController implements Initializable {
         menuBar.setSpacing(20.0);
 
         // Add save and done buttons as well as the title in the menu bar
-        Button saveButton = new Button("Save as");
+        Button saveButton = new Button("Save");
 
         saveButton.setPrefHeight(43.0);
         saveButton.setPrefWidth(70.0);
@@ -263,7 +321,12 @@ public class LoadFormController implements Initializable {
         savePreviewButton.setPrefWidth(150.0);
         savePreviewButton.setOnAction(e -> doneAction());
 
-        menuBar.getChildren().addAll(titleText, saveButton, dontSavePreviewButton, savePreviewButton);
+        menuBar.getChildren().addAll(
+                titleText,
+                savePreviewButton,
+                dontSavePreviewButton,
+                saveButton
+        );
 
         // Clear edit bar
         editBar.getChildren().clear();
@@ -277,14 +340,25 @@ public class LoadFormController implements Initializable {
 
         addMultipleChoiceButton.setOnAction(e -> addMultipleChoiceAction());
 
-        editBar.getChildren().addAll(addQuestionButton, addMultipleChoiceButton);
+        editBar.getChildren().addAll(
+                addQuestionButton,
+                addMultipleChoiceButton
+        );
 
         // Change color scheme
-        new FillTransition(Duration.millis(250), menuRectangle, (Color) menuRectangle.getFill(),
-                (Color) Paint.valueOf(Main.EDIT_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                menuRectangle,
+                (Color) menuRectangle.getFill(),
+                (Color) Paint.valueOf(Main.EDIT_THEME)
+        ).play();
 
-        new FillTransition(Duration.millis(250), editRectangle, (Color) editRectangle.getFill(),
-                (Color) Paint.valueOf(Main.EDIT_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                editRectangle,
+                (Color) editRectangle.getFill(),
+                (Color) Paint.valueOf(Main.EDIT_THEME)
+        ).play();
 
         // Turn on edit mode
         isEdit = true;
@@ -297,20 +371,32 @@ public class LoadFormController implements Initializable {
     public boolean saveAction() {
         isNaturallyClosed = true;
 
+        // Avoid saving empty forms
         if (!storedResponse.getFields().isEmpty()) {
             // Load the form FXML
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/Interface/UpdateInterface.fxml"));
+                FXMLLoader loader = new FXMLLoader(
+                        getClass().getResource(
+                                "/View/Interface/UpdateInterface.fxml"
+                        )
+                );
+
                 BorderPane window = loader.load();
 
                 Scene scene = new Scene(window);
 
                 // Style the scene
-                scene.getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-                scene.getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+                scene.getStylesheets().add(
+                        "/View/Interface/material-fx-v0_3.css"
+                );
+
+                scene.getStylesheets().add(
+                        "/View/Interface/materialfx-toggleswitch.css"
+                );
 
                 // Extract the save interface controller from the FXML
-                UpdateInterfaceController updateInterfaceController = loader.getController();
+                UpdateInterfaceController updateInterfaceController
+                        = loader.getController();
 
                 Stage saveStage = new Stage();
 
@@ -324,18 +410,31 @@ public class LoadFormController implements Initializable {
                 updateInterfaceController.setParameters(saveStage,
                         currentFile,
                         storedResponse.getFields(),
-                        QuestionsService.getLengthOriginal(currentFile));
+                        QuestionsService.getLengthOriginal(currentFile),
+                        QuestionsService.getIsTemplate(currentFile)
+                );
 
                 saveStage.setOnCloseRequest(e -> {
                     isNaturallyClosed = false;
                 });
 
                 saveStage.showAndWait();
-            } catch (IOException ex) {
+            } catch (Exception ex) {
+                AlertController.showAlert("Error",
+                        "Could not load resources",
+                        "The application could not load the required"
+                        + " internal resources.",
+                        Alert.AlertType.ERROR,
+                        ex
+                );
             }
         } else {
-            AlertController.showAlert("Error", "Empty form", "You cannot save an empty form.",
-                    Alert.AlertType.ERROR);
+            AlertController.showAlert(
+                    "Error",
+                    "Empty form",
+                    "You cannot save an empty form.",
+                    Alert.AlertType.ERROR
+            );
         }
 
         return isNaturallyClosed;
@@ -346,7 +445,7 @@ public class LoadFormController implements Initializable {
         // Save changes
         if (saveAction()) {
             // Reset spacing
-            menuBar.setSpacing(100.0);
+            menuBar.setSpacing(120.0);
 
             // Reset the title
             titleText.setText("Preview form");
@@ -364,11 +463,19 @@ public class LoadFormController implements Initializable {
             editBar.getChildren().addAll(editButton);
 
             // Change color scheme
-            new FillTransition(Duration.millis(250), menuRectangle, (Color) menuRectangle.getFill(),
-                    (Color) Paint.valueOf(Main.NORMAL_THEME)).play();
+            new FillTransition(
+                    Duration.millis(250),
+                    menuRectangle,
+                    (Color) menuRectangle.getFill(),
+                    (Color) Paint.valueOf(Main.PREVIEW_THEME)
+            ).play();
 
-            new FillTransition(Duration.millis(250), editRectangle, (Color) editRectangle.getFill(),
-                    (Color) Paint.valueOf(Main.NORMAL_THEME)).play();
+            new FillTransition(
+                    Duration.millis(250),
+                    editRectangle,
+                    (Color) editRectangle.getFill(),
+                    (Color) Paint.valueOf(Main.PREVIEW_THEME)
+            ).play();
 
             // Turn off edit mode
             isEdit = false;
@@ -380,19 +487,34 @@ public class LoadFormController implements Initializable {
 
     @FXML
     public void addQuestionAction() {
-        Optional<String> result = TextInputController.showTextInput("Add a question", "Add a simple question field",
-                "Enter your question: ");
+        Optional<String> result
+                = TextInputController.showTextInput(
+                        "Add a question",
+                        "Add a simple question field",
+                        "Enter your question: "
+                );
 
         // If the user input something, add it to the fields grid
         result.ifPresent(question -> {
             question = question.trim();
 
-            if (question.isEmpty() || question.contains(">") || question.contains(",")) {
-                AlertController.showAlert("Error", "Invalid label", "Make sure your label isn't blank and doesn't contain the characters '>' and ','.",
-                        Alert.AlertType.ERROR);
+            if (question.isEmpty()
+                    || question.contains(">")
+                    || question.contains(",")) {
+                AlertController.showAlert(
+                        "Error",
+                        "Invalid label",
+                        "Make sure your label isn't blank and doesn't contain"
+                        + " the characters '>' and ','.",
+                        Alert.AlertType.ERROR
+                );
             } else if (isLabelExists(question)) {
-                AlertController.showAlert("Error", "Invalid label", "That label already exists.",
-                        Alert.AlertType.ERROR);
+                AlertController.showAlert(
+                        "Error",
+                        "Invalid label",
+                        "That label already exists.",
+                        Alert.AlertType.ERROR
+                );
             } else {
                 // Add a new field
                 storedResponse.getFields().add(new Field(question, null));
@@ -405,21 +527,40 @@ public class LoadFormController implements Initializable {
 
     @FXML
     public void addMultipleChoiceAction() {
-        Optional<String> label = TextInputController.showTextInput("Add a multiple choice field",
-                "Set the label of the multiple choice field", "Enter the label");
+        Optional<String> label
+                = TextInputController.showTextInput(
+                        "Add a multiple choice field",
+                        "Set the label of the multiple choice field",
+                        "Enter the label"
+                );
 
         label.ifPresent(titleString -> {
             titleString = titleString.trim();
 
-            if (titleString.isEmpty() || titleString.contains(">") || titleString.contains(",")) {
-                AlertController.showAlert("Error", "Invalid label", "Make sure your label isn't blank and doesn't contain the characters '>' and ','.",
-                        Alert.AlertType.ERROR);
+            if (titleString.isEmpty()
+                    || titleString.contains(">")
+                    || titleString.contains(",")) {
+                AlertController.showAlert(
+                        "Error",
+                        "Invalid label",
+                        "Make sure your label isn't blank and doesn't contain"
+                        + " the characters '>' and ','.",
+                        Alert.AlertType.ERROR
+                );
             } else if (isLabelExists(titleString)) {
-                AlertController.showAlert("Error", "Invalid label", "That label already exists.",
-                        Alert.AlertType.ERROR);
+                AlertController.showAlert(
+                        "Error",
+                        "Invalid label",
+                        "That label already exists.",
+                        Alert.AlertType.ERROR
+                );
             } else {
-                Optional<String> result = TextInputController.showTextInput("Add a multiple choice field",
-                        "Add a multiple choice field", "Enter your choices, separate with commas: ");
+                Optional<String> result
+                        = TextInputController.showTextInput(
+                                "Add a multiple choice field",
+                                "Add a multiple choice field",
+                                "Enter your choices, separate with commas: "
+                        );
 
                 // If the user input something, add it to the fields grid
                 final String finalTitleString = titleString;
@@ -431,14 +572,24 @@ public class LoadFormController implements Initializable {
                     String[] choices = choiceString.split(",");
 
                     if (choices.length < 2 || choiceString.contains(">")) {
-                        AlertController.showAlert("Error", "Invalid choices",
-                                "Make sure you've entered at least two valid choices.", Alert.AlertType.ERROR);
+                        AlertController.showAlert(
+                                "Error",
+                                "Invalid choices",
+                                "Make sure you've entered at least two valid"
+                                + " choices.",
+                                Alert.AlertType.ERROR
+                        );
                     } else {
                         // Trim any leading whitespace
                         trimChoices(choices);
 
                         // Add a new field
-                        storedResponse.getFields().add(new Field(finalTitleString, Arrays.asList(choices)));
+                        storedResponse.getFields().add(
+                                new Field(
+                                        finalTitleString,
+                                        Arrays.asList(choices)
+                                )
+                        );
 
                         // Redraw the grid
                         drawFields();
@@ -449,14 +600,17 @@ public class LoadFormController implements Initializable {
     }
 
     private void clearAnswerAction() {
+        // Just redraw the fields to clear responses
         drawFields();
     }
 
     private void clearEditAction() {
-        if (ConfirmationController.showConfirmation("Are you sure?", "Any changes made will be discarded",
-                "Go back to preview mode without saving any changes?")) {
+        if (ConfirmationController.showConfirmation(
+                "Are you sure?",
+                "Unsaved changes will be discarded",
+                "Go back to preview mode?")) {
             // Reset spacing
-            menuBar.setSpacing(100.0);
+            menuBar.setSpacing(122.0);
 
             // Reset the title
             titleText.setText("Preview form");
@@ -474,11 +628,19 @@ public class LoadFormController implements Initializable {
             editBar.getChildren().addAll(editButton);
 
             // Change color scheme
-            new FillTransition(Duration.millis(250), menuRectangle, (Color) menuRectangle.getFill(),
-                    (Color) Paint.valueOf(Main.NORMAL_THEME)).play();
+            new FillTransition(
+                    Duration.millis(250),
+                    menuRectangle,
+                    (Color) menuRectangle.getFill(),
+                    (Color) Paint.valueOf(Main.PREVIEW_THEME)
+            ).play();
 
-            new FillTransition(Duration.millis(250), editRectangle, (Color) editRectangle.getFill(),
-                    (Color) Paint.valueOf(Main.NORMAL_THEME)).play();
+            new FillTransition(
+                    Duration.millis(250),
+                    editRectangle,
+                    (Color) editRectangle.getFill(),
+                    (Color) Paint.valueOf(Main.PREVIEW_THEME)
+            ).play();
 
             // Reload current file
             loadFields(currentFile);
@@ -498,14 +660,21 @@ public class LoadFormController implements Initializable {
             if (control instanceof TextField) {
                 answer = ((TextField) control).getText();
             } else if (control instanceof ChoiceBox) {
-                answer = (String) ((ChoiceBox) control).getSelectionModel().getSelectedItem();
+                answer
+                        = (String) ((ChoiceBox) control)
+                                .getSelectionModel().getSelectedItem();
             } else {
                 answer = "";
             }
 
             if (answer == null || answer.trim().isEmpty()) {
-                AlertController.showAlert("Error", "Some fields are empty",
-                        "All fields must be filled out before submitting this form.", Alert.AlertType.ERROR);
+                AlertController.showAlert(
+                        "Error",
+                        "Some fields are empty",
+                        "All fields must be filled out before submitting this"
+                        + " form.",
+                        Alert.AlertType.ERROR
+                );
 
                 return;
             }
@@ -517,102 +686,179 @@ public class LoadFormController implements Initializable {
         }
 
         // TODO [2]:
-        // Save response into the associated excel (.xlsx) file (or files, if preset
-        // form was used) of the current file.
+        // Save response into the associated excel (.xlsx) file (or files,
+        // if preset form was used) of the current file.
+        File responsesFile;
+        File officialFile = null;
+
+        File responsesTempFile = null;
+        File officialTempFile = null;
+
         try {
-            // Create a temporary copy of the file and
-            // the the official file (if available)
-            String[] outputFilenames = QuestionsService.getOutputFilenames(currentFile);
+            try {
+                boolean continueSubmission = true;
 
-            File responsesFile = new File(outputFilenames[0]);
-            File officialFile = null;
+                // Create a temporary copy of the file and the official file
+                // (if available) to ensure backups in case file writes fail
+                String[] outputFilenames
+                        = QuestionsService.getOutputFilenames(currentFile);
 
-            File responsesTempFile = new File(outputFilenames[0] + TEMPORARY_FILE_INDICATOR);
-            File officialTempFile = null;
+                responsesFile = new File(outputFilenames[0]);
 
-            Files.copy(
-                    responsesFile.toPath(),
-                    responsesTempFile.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING
-            );
+                responsesTempFile = new File(
+                        outputFilenames[0] + TEMPORARY_FILE_INDICATOR
+                );
 
-            boolean isOfficialExists = outputFilenames.length == 2;
+                // Check if the response fields match
+                if (!SaveInterfaceController.isHeadersEqual(
+                        ResponsesService.getHeaders(responsesFile),
+                        storedResponse.getFields())
+                        || !ResponsesService.isSquare(responsesFile)) {
+                    AlertController.showAlert("Error",
+                            "Fields mismatch",
+                            "The responses you've submitted do not match the"
+                            + " format of the responses file.",
+                            Alert.AlertType.ERROR
+                    );
 
-            if (isOfficialExists) {
-                officialFile = new File(outputFilenames[1]);
-                officialTempFile = new File(outputFilenames[1] + TEMPORARY_FILE_INDICATOR);
+                    continueSubmission = false;
+                }
 
                 Files.copy(
-                        officialFile.toPath(),
-                        officialTempFile.toPath(),
+                        responsesFile.toPath(),
+                        responsesTempFile.toPath(),
                         StandardCopyOption.REPLACE_EXISTING
                 );
-            }
 
-            try {
-                ResponsesService.addResponse(responsesFile, storedResponse.getFields());
+                boolean isOfficialExists = outputFilenames.length == 2;
 
-                // If there are two output files, submit responses to both official and custom
-                // forms
                 if (isOfficialExists) {
-                    ResponsesService.addResponse(officialFile, storedResponse.getFields().subList(0, lengthOriginal));
-                }
+                    officialFile = new File(outputFilenames[1]);
 
-                // Then delete all temporary files
-                responsesTempFile.delete();
+                    officialTempFile = new File(
+                            outputFilenames[1] + TEMPORARY_FILE_INDICATOR
+                    );
 
-                if (officialTempFile != null) {
-                    officialTempFile.delete();
-                }
+                    // Check if the response fields match
+                    if (!SaveInterfaceController.isHeadersEqual(
+                            ResponsesService.getHeaders(officialFile),
+                            storedResponse.getFields().subList(
+                                    0,
+                                    lengthOriginal))
+                            || !ResponsesService.isSquare(officialFile)) {
+                        AlertController.showAlert(
+                                "Error",
+                                "Fields mismatch",
+                                "The responses you've submitted do not match"
+                                + " the format of the offical copy.",
+                                Alert.AlertType.ERROR
+                        );
 
-                // Show save success message
-                AlertController.showAlert("Success", "Response submitted",
-                        "Your response has been successfully submitted. Thank you!", Alert.AlertType.INFORMATION);
+                        continueSubmission = false;
+                    }
 
-                // Clear the current response
-                clearAnswers();
-
-                // Redraw fields
-                drawFields();
-            } catch (IOException ex) {
-                try {
                     Files.copy(
-                            responsesTempFile.toPath(),
-                            responsesFile.toPath(),
+                            officialFile.toPath(),
+                            officialTempFile.toPath(),
                             StandardCopyOption.REPLACE_EXISTING
                     );
-                } catch (IOException ex2) {
-                    // Do nothing
                 }
 
-                if (isOfficialExists && officialTempFile != null && officialFile != null) {
+                if (continueSubmission) {
                     try {
-                        Files.copy(
-                                officialTempFile.toPath(),
-                                officialFile.toPath(),
-                                StandardCopyOption.REPLACE_EXISTING
+                        ResponsesService.addResponse(
+                                responsesFile,
+                                storedResponse.getFields()
                         );
-                    } catch (IOException ex2) {
-                        // Do nothing
+
+                        // If there are two output files, submit responses to
+                        // both official and custom forms
+                        if (isOfficialExists) {
+                            ResponsesService.addResponse(
+                                    officialFile,
+                                    storedResponse.getFields()
+                                            .subList(0, lengthOriginal)
+                            );
+                        }
+
+                        // Show save success message
+                        AlertController.showAlert(
+                                "Success",
+                                "Response submitted",
+                                "Your response has been successfully submitted."
+                                + " Thank you!",
+                                Alert.AlertType.INFORMATION
+                        );
+
+                        // Clear the current response
+                        clearAnswers();
+
+                        // Redraw fields
+                        drawFields();
+                    } catch (IOException ex) {
+                        try {
+                            Files.copy(
+                                    responsesTempFile.toPath(),
+                                    responsesFile.toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING
+                            );
+                        } catch (IOException ex2) {
+                            // Do nothing
+                        }
+
+                        if (isOfficialExists
+                                && officialTempFile != null
+                                && officialFile != null) {
+                            try {
+                                Files.copy(
+                                        officialTempFile.toPath(),
+                                        officialFile.toPath(),
+                                        StandardCopyOption.REPLACE_EXISTING
+                                );
+                            } catch (IOException ex2) {
+                                // Do nothing
+                            }
+                        }
+
+                        AlertController.showAlert("Error",
+                                "Could not submit response",
+                                "Could not write the response to the output"
+                                + " file. Make sure no other program is using"
+                                + " that output file, or that it even"
+                                + " exists at all.",
+                                Alert.AlertType.ERROR,
+                                ex
+                        );
                     }
                 }
-
-                responsesTempFile.delete();
-
-                if (officialTempFile != null) {
-                    officialTempFile.delete();
-                }
-
-                AlertController.showAlert("Error", "Could not submit response",
-                        "Could not write the response to the output file. Make sure no other program is using that output file, or that it even exists at all.",
-                        Alert.AlertType.ERROR);
+            } catch (IOException ex) {
+                AlertController.showAlert(
+                        "Error",
+                        "Could not submit response",
+                        "Could not write the response to the output file. Make"
+                        + " sure no other program is using that output file, or"
+                        + " that it even exists at all.",
+                        Alert.AlertType.ERROR,
+                        ex
+                );
             }
-        } catch (IOException e) {
-            AlertController.showAlert("Error", "Could not submit response",
-                    "Could not write the response to the output file. Make sure no other program is using that output file, or that it even exists at all.",
-                    Alert.AlertType.ERROR);
+        } catch (Exception ex) {
+            AlertController.showAlert(
+                    "Error",
+                    "Internal error",
+                    "An internal error occurred.",
+                    Alert.AlertType.ERROR,
+                    ex
+            );
+        } finally {
+            // Whatever happens, always delete temporary files, if available
+            if (responsesTempFile != null) {
+                responsesTempFile.delete();
+            }
 
-            e.printStackTrace();
+            if (officialTempFile != null) {
+                officialTempFile.delete();
+            }
         }
     }
 
@@ -633,14 +879,22 @@ public class LoadFormController implements Initializable {
         editBar.getChildren().addAll(editButton);
 
         // Change color scheme
-        new FillTransition(Duration.millis(250), menuRectangle, (Color) menuRectangle.getFill(),
-                (Color) Paint.valueOf(Main.NORMAL_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                menuRectangle,
+                (Color) menuRectangle.getFill(),
+                (Color) Paint.valueOf(Main.PREVIEW_THEME)
+        ).play();
 
-        new FillTransition(Duration.millis(250), editRectangle, (Color) editRectangle.getFill(),
-                (Color) Paint.valueOf(Main.NORMAL_THEME)).play();
+        new FillTransition(
+                Duration.millis(250),
+                editRectangle,
+                (Color) editRectangle.getFill(),
+                (Color) Paint.valueOf(Main.PREVIEW_THEME)
+        ).play();
 
-        // Turn off edit mode
-        isEdit = false;
+        // Turn off answer mode
+        isAnswer = false;
 
         // Redraw fields
         drawFields();
@@ -658,12 +912,14 @@ public class LoadFormController implements Initializable {
     }
 
     private void trimChoices(String[] choices) {
+        // Remove leading and trailing whitespaces
         for (int choiceIndex = 0; choiceIndex < choices.length; choiceIndex++) {
             choices[choiceIndex] = choices[choiceIndex].trim();
         }
     }
 
     private void clearAnswers() {
+        // Reset all answers to blank fields
         for (Field field : storedResponse.getFields()) {
             field.setAnswer("");
         }
@@ -672,6 +928,7 @@ public class LoadFormController implements Initializable {
     private boolean isLabelExists(String label) {
         List<Field> fields = storedResponse.getFields();
 
+        // Check for duplicate labels and to avoid duplicates
         for (Field field : fields) {
             if (field.getLabel().equals(label)) {
                 return true;

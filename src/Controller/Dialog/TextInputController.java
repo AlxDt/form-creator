@@ -14,15 +14,23 @@ import javafx.scene.control.TextInputDialog;
  */
 public class TextInputController {
 
-    public static Optional<String> showTextInput(String title, String header, String content) {
+    public static Optional<String> showTextInput(
+            String title,
+            String header,
+            String content) {
         TextInputDialog textInputDialog = new TextInputDialog();
 
         textInputDialog.setTitle(title);
         textInputDialog.setHeaderText(header);
         textInputDialog.setContentText(content);
 
-        textInputDialog.getDialogPane().getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-        textInputDialog.getDialogPane().getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+        textInputDialog.getDialogPane().getStylesheets().add(
+                "/View/Interface/material-fx-v0_3.css"
+        );
+
+        textInputDialog.getDialogPane().getStylesheets().add(
+                "/View/Interface/materialfx-toggleswitch.css"
+        );
 
         return textInputDialog.showAndWait();
     }

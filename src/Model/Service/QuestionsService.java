@@ -21,15 +21,27 @@ import java.util.Scanner;
 public class QuestionsService {
 
     // Create a configuration file from a list of fields
-    public static void writeFieldsToFile(String filename, List<Field> fields, String outputFilename,
-            String officialOutputFilename, int lengthOriginal, boolean isTemplate) throws FileNotFoundException {
+    public static void writeFieldsToFile(
+            String filename,
+            List<Field> fields,
+            String outputFilename,
+            String officialOutputFilename,
+            int lengthOriginal,
+            boolean isTemplate
+    ) throws FileNotFoundException {
         PrintWriter newFile;
 
         newFile = new PrintWriter(filename);
 
-        // The first line will always contain the full path to the output excel file
-        // (and its official copy, if available)
-        newFile.println(outputFilename + ((officialOutputFilename != null) ? "," + officialOutputFilename : ""));
+        // The first line will always contain the full path to the output excel
+        // file (and its official copy, if available)
+        newFile.println(
+                outputFilename
+                + ((officialOutputFilename != null)
+                        ? ","
+                        + officialOutputFilename
+                        : "")
+        );
 
         // The second line will always contain the original length of the form
         // (the preset forms which cannot be modified)
@@ -47,7 +59,9 @@ public class QuestionsService {
             if (multiOption != null) {
                 newFile.print(">");
 
-                for (int choiceIndex = 0; choiceIndex < multiOption.size(); choiceIndex++) {
+                for (int choiceIndex = 0;
+                        choiceIndex < multiOption.size();
+                        choiceIndex++) {
                     newFile.print(multiOption.get(choiceIndex));
 
                     if (choiceIndex < multiOption.size() - 1) {
@@ -63,7 +77,9 @@ public class QuestionsService {
     }
 
     // Get the fields from a configuration file
-    public static List<Field> readFieldsFromFile(File configFile, boolean includeAll) throws FileNotFoundException {
+    public static List<Field> readFieldsFromFile(
+            File configFile,
+            boolean includeAll) throws FileNotFoundException {
         List<Field> fields;
 
         // Read all the data from the configuration file
@@ -97,7 +113,8 @@ public class QuestionsService {
 
                 fields.add(new Field(label, multiOption));
 
-                // If a non-custom form is to be created, include the original fields only
+                // If a non-custom form is to be created, include the original
+                // fields only
                 originalLength--;
 
                 if (originalLength == 0 && !includeAll) {
@@ -110,7 +127,8 @@ public class QuestionsService {
     }
 
     // Get the output file name
-    public static String[] getOutputFilenames(File configFile) throws FileNotFoundException {
+    public static String[] getOutputFilenames(File configFile)
+            throws FileNotFoundException {
         String outputFilename;
 
         // Read all the data from the configuration file
@@ -121,9 +139,10 @@ public class QuestionsService {
         return outputFilename.split(",");
     }
 
-    // Get the original length of the form (the number of preset fields which cannot
-    // be modified)
-    public static int getLengthOriginal(File configFile) throws FileNotFoundException {
+    // Get the original length of the form (the number of preset fields which
+    // cannot be modified)
+    public static int getLengthOriginal(File configFile)
+            throws FileNotFoundException {
         int lengthOriginal;
 
         // Read all the data from the configuration file
@@ -138,7 +157,8 @@ public class QuestionsService {
     }
 
     // Get the template flag of the form
-    public static boolean getIsTemplate(File configFile) throws FileNotFoundException {
+    public static boolean getIsTemplate(File configFile)
+            throws FileNotFoundException {
         int isTemplate;
 
         // Read all the data from the configuration file
