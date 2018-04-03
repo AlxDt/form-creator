@@ -5,6 +5,7 @@
  */
 package Controller.Screen;
 
+import Controller.Dialog.AlertController;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -13,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -41,19 +43,35 @@ public class MainInterfaceController implements Initializable {
     public void formButtonAction() {
         // Load the form FXML
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/Interface/FormInterface.fxml"));
+            FXMLLoader loader
+                    = new FXMLLoader(
+                            getClass().getResource(
+                                    "/View/Interface/CreateInterface.fxml"
+                            )
+                    );
+
             StackPane window = loader.load();
 
             Scene scene = new Scene(window);
 
             // Style the scene
-            scene.getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-            scene.getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+            scene.getStylesheets().add(
+                    "/View/Interface/material-fx-v0_3.css"
+            );
 
-            StageController.addScreen("form", scene);
-            StageController.activate("form");
+            scene.getStylesheets().add(
+                    "/View/Interface/materialfx-toggleswitch.css"
+            );
+
+            StageController.addScreen("create", scene);
+            StageController.activate("create");
         } catch (IOException ex) {
-            ex.printStackTrace();
+            AlertController.showAlert("Error",
+                    "Could not load resources",
+                    "The application could not load the required internal"
+                    + " resources.",
+                    Alert.AlertType.ERROR, ex
+            );
         }
     }
 
@@ -61,33 +79,59 @@ public class MainInterfaceController implements Initializable {
     public void loadButtonAction() {
         FileChooser fileChooser = new FileChooser();
 
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("ARW questions (*.arwq)", "*.arwq");
+        FileChooser.ExtensionFilter extFilter
+                = new FileChooser.ExtensionFilter(
+                        "Form questions (*.dlsuform)",
+                        "*.dlsuform"
+                );
+
         fileChooser.getExtensionFilters().add(extFilter);
 
         File file = fileChooser.showOpenDialog(Main.primaryStage);
 
         if (file != null) {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/Interface/LoadFormInterface.fxml"));
-                BorderPane window = loader.load();
+            // Load the selected file, if any
+            loadForm(file);
+        }
+    }
 
-                Scene scene = new Scene(window);
+    public void loadForm(File file) {
+        try {
+            FXMLLoader loader
+                    = new FXMLLoader(
+                            getClass().getResource(
+                                    "/View/Interface/LoadFormInterface.fxml"
+                            )
+                    );
 
-                // Style the scene
-                scene.getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-                scene.getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+            BorderPane window = loader.load();
 
-                // Extract the attendance interface controller from the FXML
-                LoadFormController loadFormController = loader.getController();
+            Scene scene = new Scene(window);
 
-                // Set the query of the text area
-                loadFormController.setParameters(file);
+            // Style the scene
+            scene.getStylesheets().add(
+                    "/View/Interface/material-fx-v0_3.css"
+            );
 
-                StageController.addScreen("load", scene);
-                StageController.activate("load");
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            scene.getStylesheets().add(
+                    "/View/Interface/materialfx-toggleswitch.css"
+            );
+
+            // Extract the load form interface controller from the FXML
+            LoadFormController loadFormController = loader.getController();
+
+            // Set the parameters of the form loading
+            loadFormController.setParameters(file);
+
+            StageController.addScreen("load", scene);
+            StageController.activate("load");
+        } catch (Exception ex) {
+            AlertController.showAlert("Error",
+                    "Could not load resources",
+                    "The application could not load the required internal"
+                    + " resources.",
+                    Alert.AlertType.ERROR, ex
+            );
         }
     }
 }

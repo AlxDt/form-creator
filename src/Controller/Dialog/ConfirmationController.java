@@ -15,22 +15,26 @@ import javafx.scene.control.ButtonType;
  */
 public class ConfirmationController {
 
-    public static boolean showConfirmation(String title, String header, String content) {
+    public static boolean showConfirmation(
+            String title,
+            String header,
+            String content) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
 
-        alert.getDialogPane().getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-        alert.getDialogPane().getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+        alert.getDialogPane().getStylesheets().add(
+                "/View/Interface/material-fx-v0_3.css"
+        );
+
+        alert.getDialogPane().getStylesheets().add(
+                "/View/Interface/materialfx-toggleswitch.css"
+        );
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if (result.get() == ButtonType.OK) {
-            return true;
-        } else {
-            return false;
-        }
+        return result.get() == ButtonType.OK;
     }
 }

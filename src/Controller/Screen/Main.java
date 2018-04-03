@@ -5,11 +5,13 @@
  */
 package Controller.Screen;
 
+import Controller.Dialog.AlertController;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -19,43 +21,73 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
 
-    public static final String PRESET_ARW_FIELDS_PATH = "defaults/arw_fields.arwq";
-    public static final String PRESET_ATTENDANCE_FIELDS_PATH = "defaults/attendance_fields.arwq";
+    // Where to look for the template forms
+    public static final String PRESET_ARW_FIELDS_PATH
+            = "defaults/arw_fields.dlsuform";
+    public static final String PRESET_ATTENDANCE_FIELDS_PATH
+            = "defaults/attendance_fields.dlsuform";
 
-    public static final String NORMAL_THEME = "#2196f3";
+    // Theme colors for different modes
+    public static final String PREVIEW_THEME = "#2196f3";
     public static final String EDIT_THEME = "#f57c00";
     public static final String ANSWER_THEME = "#2e7d32";
+
+    // Temporary file indicator
+    public static final String TEMPORARY_FILE_INDICATOR = "tmp_";
 
     public static Stage primaryStage;
 
     @Override
     public void start(Stage stage) throws Exception {
-        primaryStage = stage;
+        try {
+            primaryStage = stage;
 
-        // Load the main FXML
-        Parent root = FXMLLoader.load(getClass().getResource("/View/Interface/MainInterface.fxml"));
+            // Load the main FXML
+            Parent root
+                    = FXMLLoader.load(
+                            getClass().getResource(
+                                    "/View/Interface/MainInterface.fxml"
+                            )
+                    );
 
-        // Extract the scene
-        Scene scene = new Scene(root);
+            // Extract the scene
+            Scene scene = new Scene(root);
 
-        // Use the Roboto font
-        Font.loadFont(Main.class.getResource("/View/Interface/Roboto-Medium.ttf").toExternalForm(), 10);
+            // Use the Roboto font
+            Font.loadFont(
+                    Main.class.getResource(
+                            "/View/Interface/Roboto-Medium.ttf")
+                            .toExternalForm(),
+                    10
+            );
 
-        // Style the scene
-        scene.getStylesheets().add("/View/Interface/material-fx-v0_3.css");
-        scene.getStylesheets().add("/View/Interface/materialfx-toggleswitch.css");
+            // Style the scene
+            scene.getStylesheets().add(
+                    "/View/Interface/material-fx-v0_3.css"
+            );
+            scene.getStylesheets().add(
+                    "/View/Interface/materialfx-toggleswitch.css"
+            );
 
-        // Initialize the scene map
-        StageController.setStage(stage);
+            // Initialize the scene map
+            StageController.setStage(stage);
 
-        // Set this as the main scene
-        StageController.addScreen("main", scene);
+            // Set this as the main scene
+            StageController.addScreen("main", scene);
 
-        // Window settings
-        stage.setTitle("Form Creator");
-        stage.setResizable(false);
-        stage.setScene(scene);
-        stage.show();
+            // Window settings
+            stage.setTitle("Form Creator");
+            stage.setResizable(false);
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception ex) {
+            AlertController.showAlert("Error",
+                    "Could not load resources",
+                    "The application could not load the required internal"
+                    + " resources.",
+                    Alert.AlertType.ERROR, ex
+            );
+        }
     }
 
     /**
