@@ -38,7 +38,7 @@ public class ResponsesService {
     // If an exception is thrown, add a throws clause to the function
     // TODO [6]:
     // Creates an excel (.xlsx) file with the given file name from a given
-    // configuration (.dlsuform) file
+    // configuration (.form) file
     public static void createForm(
             File configFile,
             String outputFilename,

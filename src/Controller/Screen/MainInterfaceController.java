@@ -5,11 +5,12 @@
  */
 package Controller.Screen;
 
-import Controller.Dialog.AlertController;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import Controller.Dialog.AlertController;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -22,7 +23,7 @@ import javafx.stage.FileChooser;
 
 /**
  *
- * @author user
+ * @author user-
  */
 public class MainInterfaceController implements Initializable {
 
@@ -81,8 +82,8 @@ public class MainInterfaceController implements Initializable {
 
         FileChooser.ExtensionFilter extFilter
                 = new FileChooser.ExtensionFilter(
-                        "Form questions (*.dlsuform)",
-                        "*.dlsuform"
+                        "Form questions (*.form)",
+                        "*.form"
                 );
 
         fileChooser.getExtensionFilters().add(extFilter);

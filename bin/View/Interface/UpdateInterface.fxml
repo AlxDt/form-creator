@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Screen.UpdateInterfaceController">
+    <top>
+        <StackPane prefHeight="70.0" prefWidth="425.0" BorderPane.alignment="CENTER">
+            <children>
+                <Rectangle fx:id="menuRectangle" fill="#2196f3" height="70.0" stroke="BLACK" strokeWidth="0.0" width="750.0">
+                    <effect>
+                        <DropShadow blurType="GAUSSIAN" />
+                    </effect>
+                </Rectangle>
+                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="95.0">
+                    <children>
+                        <Text id="subtitle" fx:id="titleText" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Update form" />
+                    </children>
+                </HBox>
+            </children>
+        </StackPane>
+    </top>
+    <bottom>
+        <StackPane prefHeight="70.0" prefWidth="425.0" BorderPane.alignment="CENTER">
+            <children>
+                <Rectangle fx:id="editRectangle" fill="#2196f3" height="70.0" stroke="BLACK" strokeWidth="0.0" width="750.0">
+                    <effect>
+                        <DropShadow blurType="GAUSSIAN" />
+                    </effect>
+                </Rectangle>
+                <HBox alignment="CENTER" prefHeight="70.0" prefWidth="425.0" spacing="40.0">
+                    <children>
+                        <Button fx:id="saveButton" mnemonicParsing="false" onAction="#saveAction" prefHeight="43.0" prefWidth="100.0" text="Update" />
+                    </children>
+                </HBox>
+            </children>
+        </StackPane>
+    </bottom>
+    <center>
+        <GridPane alignment="CENTER" BorderPane.alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <Text id="text" strokeType="OUTSIDE" strokeWidth="0.0" text="Location of the questions file to be updated" />
+                <Label fx:id="questionsLabel" text="No location chosen" textOverrun="CENTER_WORD_ELLIPSIS" GridPane.rowIndex="1" />
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Location of the responses file to be updated" GridPane.rowIndex="2" />
+                <Label fx:id="responsesLabel" text="No location chosen" textOverrun="CENTER_WORD_ELLIPSIS" GridPane.rowIndex="3" />
+                <Text fx:id="officialText" strokeType="OUTSIDE" strokeWidth="0.0" text="Location of the official (CSO) copy of the responses file to be updated" visible="false" GridPane.rowIndex="4" />
+                <Label fx:id="officialLabel" text="No location chosen" textOverrun="CENTER_WORD_ELLIPSIS" visible="false" GridPane.rowIndex="5" />
+                <Button fx:id="officialButton" disable="true" mnemonicParsing="false" onAction="#officialAction" text="Choose location" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            </children>
+            <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+            </padding>
+        </GridPane>
+    </center>
+</BorderPane>

@@ -5,9 +5,10 @@
  */
 package Controller.Screen;
 
-import Controller.Dialog.AlertController;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
+
+import Controller.Dialog.AlertController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -23,9 +24,9 @@ public class Main extends Application {
 
     // Where to look for the template forms
     public static final String PRESET_ARW_FIELDS_PATH
-            = "defaults/arw_fields.dlsuform";
+            = "defaults/arw_fields.form";
     public static final String PRESET_ATTENDANCE_FIELDS_PATH
-            = "defaults/attendance_fields.dlsuform";
+            = "defaults/attendance_fields.form";
 
     // Theme colors for different modes
     public static final String PREVIEW_THEME = "#2196f3";

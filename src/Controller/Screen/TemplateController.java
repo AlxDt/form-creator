@@ -5,9 +5,10 @@
  */
 package Controller.Screen;
 
-import Controller.Dialog.AlertController;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import Controller.Dialog.AlertController;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;

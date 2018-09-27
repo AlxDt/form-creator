@@ -5,12 +5,12 @@
  */
 package Controller.Screen;
 
-import Controller.Dialog.AlertController;
-import Controller.Dialog.ConfirmationController;
-import Controller.Dialog.TextInputController;
 import Model.Core.Field;
 import Model.Core.Response;
 import Model.Service.QuestionsService;
+import Controller.Dialog.AlertController;
+import Controller.Dialog.ConfirmationController;
+import Controller.Dialog.TextInputController;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -111,8 +111,6 @@ public class PresetARWController implements Initializable {
                                         field.getMultiOption()
                                 )
                         );
-
-                options.setDisable(true);
 
                 GridPane.setConstraints(options, 1, row);
 
@@ -369,7 +367,7 @@ public class PresetARWController implements Initializable {
                         "Error",
                         "Invalid label",
                         "Make sure your label isn't blank and doesn't contain"
-                        + " the characters '>' and ','.",
+                        + " the characters '>' or ','.",
                         Alert.AlertType.ERROR
                 );
             } else if (isLabelExists(question)) {
@@ -407,7 +405,7 @@ public class PresetARWController implements Initializable {
                         "Error",
                         "Invalid label",
                         "Make sure your label isn't blank and doesn't contain"
-                        + " the characters '>' and ','.",
+                        + " the characters '>' or ','.",
                         Alert.AlertType.ERROR
                 );
             } else if (isLabelExists(titleString)) {

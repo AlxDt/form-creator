@@ -5,14 +5,14 @@
  */
 package Controller.Screen;
 
-import Controller.Dialog.AlertController;
-import Controller.Dialog.ConfirmationController;
-import Controller.Dialog.TextInputController;
 import static Controller.Screen.Main.TEMPORARY_FILE_INDICATOR;
 import Model.Core.Field;
 import Model.Core.Response;
 import Model.Service.QuestionsService;
 import Model.Service.ResponsesService;
+import Controller.Dialog.AlertController;
+import Controller.Dialog.ConfirmationController;
+import Controller.Dialog.TextInputController;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -165,12 +165,6 @@ public class LoadFormController implements Initializable {
                                         field.getMultiOption()
                                 )
                         );
-
-                // Disable the controls to avoid confusing the users
-                // except in answer mode
-                if (!isAnswer) {
-                    options.setDisable(true);
-                }
 
                 GridPane.setConstraints(options, 1, row);
 
@@ -505,7 +499,7 @@ public class LoadFormController implements Initializable {
                         "Error",
                         "Invalid label",
                         "Make sure your label isn't blank and doesn't contain"
-                        + " the characters '>' and ','.",
+                        + " the characters '>' or ','.",
                         Alert.AlertType.ERROR
                 );
             } else if (isLabelExists(question)) {
@@ -544,7 +538,7 @@ public class LoadFormController implements Initializable {
                         "Error",
                         "Invalid label",
                         "Make sure your label isn't blank and doesn't contain"
-                        + " the characters '>' and ','.",
+                        + " the characters '>' or ','.",
                         Alert.AlertType.ERROR
                 );
             } else if (isLabelExists(titleString)) {

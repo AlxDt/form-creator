@@ -5,11 +5,12 @@
  */
 package Controller.Screen;
 
-import Controller.Dialog.AlertController;
 import static Controller.Screen.Main.TEMPORARY_FILE_INDICATOR;
 import Model.Core.Field;
 import Model.Service.QuestionsService;
 import Model.Service.ResponsesService;
+import Controller.Dialog.AlertController;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -173,8 +174,8 @@ public class UpdateInterfaceController implements Initializable {
 
         FileChooser.ExtensionFilter extFilter
                 = new FileChooser.ExtensionFilter(
-                        "Form questions (*.dlsuform)",
-                        "*.dlsuform"
+                        "Form questions (*.form)",
+                        "*.form"
                 );
 
         fileChooser.getExtensionFilters().add(extFilter);
@@ -281,7 +282,7 @@ public class UpdateInterfaceController implements Initializable {
                         }
 
                         try {
-                            // Save a questions (.dlsuform) file containing the
+                            // Save a questions (.form) file containing the
                             // format of the questions
                             QuestionsService.writeFieldsToFile(
                                     questionsLabel.getText(),

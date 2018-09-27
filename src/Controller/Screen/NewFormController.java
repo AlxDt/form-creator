@@ -5,11 +5,12 @@
  */
 package Controller.Screen;
 
+import Model.Core.Field;
+import Model.Core.Response;
 import Controller.Dialog.AlertController;
 import Controller.Dialog.ConfirmationController;
 import Controller.Dialog.TextInputController;
-import Model.Core.Field;
-import Model.Core.Response;
+
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,8 +106,6 @@ public class NewFormController implements Initializable {
                                         field.getMultiOption()
                                 )
                         );
-
-                options.setDisable(true);
 
                 GridPane.setConstraints(options, 1, row);
 
@@ -354,7 +353,7 @@ public class NewFormController implements Initializable {
                         "Error",
                         "Invalid label",
                         "Make sure your label isn't blank and doesn't contain"
-                        + " the characters '>' and ','.",
+                        + " the characters '>' or ','.",
                         Alert.AlertType.ERROR
                 );
             } else if (isLabelExists(question)) {
@@ -393,7 +392,7 @@ public class NewFormController implements Initializable {
                         "Error",
                         "Invalid label",
                         "Make sure your label isn't blank and doesn't contain"
-                        + " the characters '>' and ','.",
+                        + " the characters '>' or ','.",
                         Alert.AlertType.ERROR
                 );
             } else if (isLabelExists(titleString)) {

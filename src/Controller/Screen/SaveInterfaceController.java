@@ -5,11 +5,12 @@
  */
 package Controller.Screen;
 
-import Controller.Dialog.AlertController;
-import Controller.Dialog.ConfirmationController;
 import Model.Core.Field;
 import Model.Service.QuestionsService;
 import Model.Service.ResponsesService;
+import Controller.Dialog.AlertController;
+import Controller.Dialog.ConfirmationController;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -145,8 +146,8 @@ public class SaveInterfaceController implements Initializable {
 
         FileChooser.ExtensionFilter extFilter
                 = new FileChooser.ExtensionFilter(
-                        "Form questions (*.dlsuform)",
-                        "*.dlsuform"
+                        "Form questions (*.form)",
+                        "*.form"
                 );
 
         fileChooser.getExtensionFilters().add(extFilter);
@@ -216,7 +217,7 @@ public class SaveInterfaceController implements Initializable {
                     );
                 } else {
                     try {
-                        // Save a questions (.dlsuform) file containing the
+                        // Save a questions (.form) file containing the
                         // format of the questions
                         QuestionsService.writeFieldsToFile(
                                 questionsLabel.getText(),
